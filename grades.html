@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Grades - Students Management System</title>
+
+    <link
+        rel="stylesheet"
+        href="css/styles.css"
+    >
+
+</head>
+
+<body>
+
+    <header>
+
+        <h1>Students Management System</h1>
+
+        <nav>
+
+            <a href="index.html">Dashboard</a>
+
+            <a href="students.html">Students</a>
+
+            <a href="attendance.html">Attendance</a>
+
+            <a href="grades.html">Grades</a>
+
+            <span id="userRole"></span>
+
+            <button onclick="logout()">Logout</button>
+
+        </nav>
+
+    </header>
+
+
+    <main>
+
+        <section class="grade-management">
+
+            <h2>Grade Management</h2>
+
+
+            <!-- Add Grade -->
+
+            <div class="student-form">
+
+                <h3>Add / Update Grade</h3>
+
+                <form id="gradeForm">
+
+                    <div class="form-group">
+
+                        <label for="gradeStudent">
+                            Student
+                        </label>
+
+                        <select
+                            id="gradeStudent"
+                            required
+                        >
+
+                            <option value="">
+                                Select Student
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label for="gradeSubject">
+                            Subject
+                        </label>
+
+                        <select
+                            id="gradeSubject"
+                            required
+                        >
+
+                            <option value="">
+                                Select Subject
+                            </option>
+
+                            <option value="Mathematics">
+                                Mathematics
+                            </option>
+
+                            <option value="Science">
+                                Science
+                            </option>
+
+                            <option value="English">
+                                English
+                            </option>
+
+                            <option value="Computer Science">
+                                Computer Science
+                            </option>
+
+                            <option value="Social Studies">
+                                Social Studies
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label for="gradeMarks">
+                            Marks
+                        </label>
+
+                        <input
+                            type="number"
+                            id="gradeMarks"
+                            min="0"
+                            max="100"
+                            required
+                        >
+
+                    </div>
+
+
+                    <button type="submit">
+                        Save Grade
+                    </button>
+
+                </form>
+
+            </div>
+
+
+            <!-- Grade Summary -->
+
+            <div class="student-records">
+
+                <h3>Student Academic Performance</h3>
+
+                <button
+                    type="button"
+                    id="exportGrades"
+                    class="export-button"
+                >
+                    Export Grades to Excel
+                </button>
+
+
+                <div class="filter-container">
+
+                    <div class="search-box">
+
+                        <input
+                            type="text"
+                            id="searchGrade"
+                            placeholder="Search student..."
+                        >
+
+                    </div>
+
+
+                    <select id="filterGradeStudent">
+
+                        <option value="">
+                            All Students
+                        </option>
+
+                    </select>
+
+
+                    <select id="filterGradeSubject">
+
+                        <option value="">
+                            All Subjects
+                        </option>
+
+                        <option value="Mathematics">
+                            Mathematics
+                        </option>
+
+                        <option value="Science">
+                            Science
+                        </option>
+
+                        <option value="English">
+                            English
+                        </option>
+
+                        <option value="Computer Science">
+                            Computer Science
+                        </option>
+
+                        <option value="Social Studies">
+                            Social Studies
+                        </option>
+
+                    </select>
+
+
+                    <select id="filterGradeRange">
+
+                        <option value="">
+                            All Marks
+                        </option>
+
+                        <option value="90">
+                            90 - 100
+                        </option>
+
+                        <option value="80">
+                            80 - 89
+                        </option>
+
+                        <option value="70">
+                            70 - 79
+                        </option>
+
+                        <option value="60">
+                            60 - 69
+                        </option>
+
+                        <option value="50">
+                            50 - 59
+                        </option>
+
+                        <option value="below50">
+                            Below 50
+                        </option>
+
+                    </select>
+
+
+                    <button
+                        type="button"
+                        id="clearGradeFilters"
+                    >
+                        Clear Filters
+                    </button>
+
+                </div>
+
+
+                <div class="grade-summary-list">
+
+                    <div class="grade-summary-row header">
+
+                        <span>Student</span>
+
+                        <span>Subjects</span>
+
+                        <span>Average Marks</span>
+
+                        <span>Overall Grade</span>
+
+                        <span>Profile</span>
+
+                    </div>
+
+
+                    <div id="gradeSummaryList"></div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <script>
+
+        if (
+            localStorage.getItem("isLoggedIn")
+            !== "true"
+        ) {
+
+            window.location.href =
+                "login.html";
+
+        }
+
+    </script>
+
+
+    <script src="js/grades.js"></script>
+
+
+    <script>
+
+        document.getElementById(
+            "userRole"
+        ).textContent =
+            localStorage.getItem("userRole");
+
+
+        function logout() {
+
+            localStorage.removeItem(
+                "isLoggedIn"
+            );
+
+            localStorage.removeItem(
+                "userRole"
+            );
+
+            window.location.href =
+                "login.html";
+
+        }
+
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+    <script src="js/students.js"></script>
+
+</body>
+
+</html>

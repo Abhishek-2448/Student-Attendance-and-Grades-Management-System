@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Student Profile</title>
+
+    <link
+        rel="stylesheet"
+        href="css/styles.css"
+    >
+
+</head>
+
+<body>
+
+    <header>
+
+        <h1>Students Management System</h1>
+
+        <nav>
+
+            <a href="index.html">Dashboard</a>
+
+            <a href="students.html">Students</a>
+
+            <a href="attendance.html">Attendance</a>
+
+            <a href="grades.html">Grades</a>
+
+            <span id="userRole"></span>
+
+            <button onclick="logout()">Logout</button>
+
+        </nav>
+
+    </header>
+
+
+    <main>
+
+        <section class="student-profile">
+
+            <a href="students.html">
+                ← Back to Students
+            </a>
+
+
+            <!-- Student Information -->
+
+            <div class="profile-card">
+
+                <h2 id="studentName">
+                    Student Profile
+                </h2>
+
+                <div class="profile-details">
+
+                    <div>
+                        <strong>Student ID</strong>
+                        <span id="studentId"></span>
+                    </div>
+
+                    <div>
+                        <strong>Age</strong>
+                        <span id="studentAge"></span>
+                    </div>
+
+                    <div>
+                        <strong>Gender</strong>
+                        <span id="studentGender"></span>
+                    </div>
+
+                    <div>
+                        <strong>Class</strong>
+                        <span id="studentClass"></span>
+                    </div>
+
+                    <div>
+                        <strong>Section</strong>
+                        <span id="studentSection"></span>
+                    </div>
+
+                    <div>
+                        <strong>Email</strong>
+                        <span id="studentEmail"></span>
+                    </div>
+
+                    <div>
+                        <strong>Phone</strong>
+                        <span id="studentPhone"></span>
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- Attendance -->
+
+            <div class="profile-card">
+
+                <h2>Attendance</h2>
+
+                <div class="profile-stats">
+
+                    <div class="profile-stat">
+                        <h3>Total Classes</h3>
+                        <p id="totalClasses">0</p>
+                    </div>
+
+                    <div class="profile-stat">
+                        <h3>Present</h3>
+                        <p id="presentClasses">0</p>
+                    </div>
+
+                    <div class="profile-stat">
+                        <h3>Absent</h3>
+                        <p id="absentClasses">0</p>
+                    </div>
+
+                    <div class="profile-stat">
+                        <h3>Attendance</h3>
+                        <p id="attendancePercentage">0%</p>
+                    </div>
+
+                </div>
+
+                <h3>Attendance History</h3>
+
+                <div id="attendanceHistory"></div>
+
+            </div>
+
+
+            <!-- Grades -->
+
+            <div class="profile-card">
+
+                <h2>Academic Performance</h2>
+
+                <div class="profile-stats">
+
+                    <div class="profile-stat">
+                        <h3>Subjects</h3>
+                        <p id="totalSubjects">0</p>
+                    </div>
+
+                    <div class="profile-stat">
+                        <h3>Average Marks</h3>
+                        <p id="averageMarks">0%</p>
+                    </div>
+
+                    <div class="profile-stat">
+                        <h3>Overall Grade</h3>
+                        <p id="overallGrade">-</p>
+                    </div>
+
+                </div>
+
+                <h3>Subject Performance</h3>
+
+                <div id="gradeHistory"></div>
+
+            </div>
+
+
+            <!-- Performance Prediction -->
+
+            <div class="profile-card">
+
+                <h2>Performance Prediction</h2>
+
+                <p id="performancePrediction">
+                    Not enough data
+                </p>
+
+            </div>
+
+
+            <!-- Recommendations -->
+
+            <div class="profile-card">
+
+                <h2>Study Recommendations</h2>
+
+                <div id="studyRecommendations">
+                    No recommendations available.
+                </div>
+
+            </div>
+
+
+            <!-- Early Warning -->
+
+            <div class="profile-card">
+
+                <h2>Early Warning System</h2>
+
+                <div id="earlyWarning">
+                    No warnings.
+                </div>
+
+            </div>
+
+
+            <!-- Gamification -->
+
+            <div class="profile-card">
+
+                <h2>Achievements</h2>
+
+                <div class="profile-stats">
+
+                    <div class="profile-stat">
+
+                        <h3>Points</h3>
+
+                        <p id="studentPoints">
+                            0
+                        </p>
+
+                    </div>
+
+                    <div class="profile-stat">
+
+                        <h3>Badges</h3>
+
+                        <p id="studentBadges">
+                            0
+                        </p>
+
+                    </div>
+
+                </div>
+
+                <div id="badgesList"></div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <script>
+
+        if (
+            localStorage.getItem("isLoggedIn")
+            !== "true"
+        ) {
+            window.location.href = "login.html";
+        }
+
+    </script>
+
+
+    <script src="js/student-profile.js"></script>
+
+
+    <script>
+
+        document.getElementById("userRole").textContent =
+            localStorage.getItem("userRole");
+
+
+        function logout() {
+
+            localStorage.removeItem("isLoggedIn");
+
+            localStorage.removeItem("userRole");
+
+            window.location.href = "login.html";
+        }
+
+    </script>
+
+</body>
+
+</html>
