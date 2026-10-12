@@ -1,44 +1,50 @@
+const API_URL = "http://localhost:3000";
+
+
 const gradeForm =
     document.getElementById(
         "gradeForm"
     );
-
 
 const gradeStudent =
     document.getElementById(
         "gradeStudent"
     );
 
+const gradeSubject =
+    document.getElementById(
+        "gradeSubject"
+    );
+
+const gradeMarks =
+    document.getElementById(
+        "gradeMarks"
+    );
 
 const gradeSummaryList =
     document.getElementById(
         "gradeSummaryList"
     );
 
-
 const searchGrade =
     document.getElementById(
         "searchGrade"
     );
-
 
 const filterGradeStudent =
     document.getElementById(
         "filterGradeStudent"
     );
 
-
 const filterGradeSubject =
     document.getElementById(
         "filterGradeSubject"
     );
 
-
 const filterGradeRange =
     document.getElementById(
         "filterGradeRange"
     );
-
 
 const clearGradeFilters =
     document.getElementById(
@@ -46,34 +52,120 @@ const clearGradeFilters =
     );
 
 
-let students =
-    JSON.parse(
-        localStorage.getItem(
-            "students"
-        )
-    ) || [];
+let students = [];
+
+let grades = [];
+
+let subjects = [];
 
 
-let grades =
-    JSON.parse(
-        localStorage.getItem(
-            "grades"
-        )
-    ) || [];
+// ==========================================
+// LOAD DATA FROM BACKEND
+// ==========================================
+
+async function loadData() {
+
+    try {
+
+        const studentsResponse =
+            await fetch(
+                `${API_URL}/students`
+            );
+
+
+        if (!studentsResponse.ok) {
+
+            throw new Error(
+                "Failed to load students"
+            );
+
+        }
+
+
+        const studentsData =
+            await studentsResponse.json();
+
+
+        students =
+            studentsData.map(
+                (student) => ({
+
+                    ...student,
+
+                    studentClass:
+                        student.class
+
+                })
+            );
+
+
+        const subjectsResponse =
+            await fetch(
+                `${API_URL}/subjects`
+            );
+
+
+        if (!subjectsResponse.ok) {
+
+            throw new Error(
+                "Failed to load subjects"
+            );
+
+        }
+
+
+        subjects =
+            await subjectsResponse.json();
+
+
+        const gradesResponse =
+            await fetch(
+                `${API_URL}/grades`
+            );
+
+
+        if (!gradesResponse.ok) {
+
+            throw new Error(
+                "Failed to load grades"
+            );
+
+        }
+
+
+        grades =
+            await gradesResponse.json();
+
+
+        loadStudents();
+
+        loadSubjects();
+
+        applyGradeFilters();
+
+
+    } catch (error) {
+
+        console.error(error);
+
+
+        gradeSummaryList.innerHTML = `
+            <p class="empty-message">
+                Unable to connect to the server.
+            </p>
+        `;
+
+    }
+
+}
 
 
 
-/* Load Students */
+// ==========================================
+// LOAD STUDENTS
+// ==========================================
 
 function loadStudents() {
-
-    students =
-        JSON.parse(
-            localStorage.getItem(
-                "students"
-            )
-        ) || [];
-
 
     gradeStudent.innerHTML = `
         <option value="">
@@ -136,19 +228,101 @@ function loadStudents() {
 
 
 
-/* Calculate Grade */
+// ==========================================
+// LOAD SUBJECTS
+// ==========================================
+
+function loadSubjects() {
+
+    /*
+     * Grade form subject dropdown
+     */
+
+    gradeSubject.innerHTML = `
+        <option value="">
+            Select Subject
+        </option>
+    `;
+
+
+    /*
+     * Subject filter dropdown
+     */
+
+    filterGradeSubject.innerHTML = `
+        <option value="">
+            All Subjects
+        </option>
+    `;
+
+
+    subjects.forEach(
+        (subject) => {
+
+            const option =
+                document.createElement(
+                    "option"
+                );
+
+
+            option.value =
+                subject.id;
+
+
+            option.textContent =
+                subject.subject_name;
+
+
+            gradeSubject.appendChild(
+                option
+            );
+
+
+            const filterOption =
+                document.createElement(
+                    "option"
+                );
+
+
+            filterOption.value =
+                subject.id;
+
+
+            filterOption.textContent =
+                subject.subject_name;
+
+
+            filterGradeSubject.appendChild(
+                filterOption
+            );
+
+        }
+    );
+
+}
+
+
+
+// ==========================================
+// CALCULATE GRADE
+// ==========================================
 
 function calculateGrade(marks) {
 
-    if (marks >= 90) return "A+";
+    if (marks >= 90)
+        return "A+";
 
-    if (marks >= 80) return "A";
+    if (marks >= 80)
+        return "A";
 
-    if (marks >= 70) return "B";
+    if (marks >= 70)
+        return "B";
 
-    if (marks >= 60) return "C";
+    if (marks >= 60)
+        return "C";
 
-    if (marks >= 50) return "D";
+    if (marks >= 50)
+        return "D";
 
     return "F";
 
@@ -156,7 +330,9 @@ function calculateGrade(marks) {
 
 
 
-/* Get Student Grades */
+// ==========================================
+// GET STUDENT GRADES
+// ==========================================
 
 function getStudentGrades(
     studentId,
@@ -165,7 +341,9 @@ function getStudentGrades(
 
     return records.filter(
         (record) =>
-            Number(record.studentId) ===
+            Number(
+                record.student_id
+            ) ===
             Number(studentId)
     );
 
@@ -173,7 +351,33 @@ function getStudentGrades(
 
 
 
-/* Grade Range */
+// ==========================================
+// GET SUBJECT NAME
+// ==========================================
+
+function getSubjectName(
+    subjectId
+) {
+
+    const subject =
+        subjects.find(
+            (item) =>
+                Number(item.id) ===
+                Number(subjectId)
+        );
+
+
+    return subject
+        ? subject.subject_name
+        : "Unknown";
+
+}
+
+
+
+// ==========================================
+// GRADE RANGE
+// ==========================================
 
 function matchesGradeRange(
     marks,
@@ -247,14 +451,17 @@ function matchesGradeRange(
 
 
 
-/* Display Grade Summary */
+// ==========================================
+// DISPLAY GRADE SUMMARY
+// ==========================================
 
 function displayGradeSummary(
     studentData = students,
     records = grades
 ) {
 
-    gradeSummaryList.innerHTML = "";
+    gradeSummaryList.innerHTML =
+        "";
 
 
     if (
@@ -290,7 +497,9 @@ function displayGradeSummary(
                 studentGrades.reduce(
                     (total, record) =>
                         total +
-                        Number(record.marks),
+                        Number(
+                            record.marks
+                        ),
                     0
                 );
 
@@ -365,7 +574,9 @@ function displayGradeSummary(
 
 
 
-/* Apply Grade Filters */
+// ==========================================
+// APPLY GRADE FILTERS
+// ==========================================
 
 function applyGradeFilters() {
 
@@ -394,8 +605,12 @@ function applyGradeFilters() {
                 const student =
                     students.find(
                         (student) =>
-                            Number(student.id) ===
-                            Number(record.studentId)
+                            Number(
+                                student.id
+                            ) ===
+                            Number(
+                                record.student_id
+                            )
                     );
 
 
@@ -416,19 +631,29 @@ function applyGradeFilters() {
 
                 const matchesStudent =
                     !selectedStudent ||
-                    Number(record.studentId) ===
-                        Number(selectedStudent);
+                    Number(
+                        record.student_id
+                    ) ===
+                        Number(
+                            selectedStudent
+                        );
 
 
                 const matchesSubject =
                     !selectedSubject ||
-                    record.subject ===
-                        selectedSubject;
+                    Number(
+                        record.subject_id
+                    ) ===
+                        Number(
+                            selectedSubject
+                        );
 
 
                 const matchesRange =
                     matchesGradeRange(
-                        Number(record.marks),
+                        Number(
+                            record.marks
+                        ),
                         selectedRange
                     );
 
@@ -454,8 +679,12 @@ function applyGradeFilters() {
         filteredStudents =
             students.filter(
                 (student) =>
-                    Number(student.id) ===
-                    Number(selectedStudent)
+                    Number(
+                        student.id
+                    ) ===
+                    Number(
+                        selectedStudent
+                    )
             );
 
     } else {
@@ -466,9 +695,11 @@ function applyGradeFilters() {
                     filteredGrades.some(
                         (record) =>
                             Number(
-                                record.studentId
+                                record.student_id
                             ) ===
-                            Number(student.id)
+                            Number(
+                                student.id
+                            )
                     )
             );
 
@@ -476,9 +707,9 @@ function applyGradeFilters() {
 
 
     /*
-        Search-only filtering should
-        still show matching students.
-    */
+     * Search-only filtering should
+     * still show matching students.
+     */
 
     if (
         searchValue &&
@@ -500,6 +731,24 @@ function applyGradeFilters() {
     }
 
 
+    /*
+     * No filters:
+     * display every student.
+     */
+
+    if (
+        !searchValue &&
+        !selectedStudent &&
+        !selectedSubject &&
+        !selectedRange
+    ) {
+
+        filteredStudents =
+            students;
+
+    }
+
+
     displayGradeSummary(
         filteredStudents,
         filteredGrades
@@ -509,11 +758,13 @@ function applyGradeFilters() {
 
 
 
-/* Add / Update Grade */
+// ==========================================
+// ADD / UPDATE GRADE
+// ==========================================
 
 gradeForm.addEventListener(
     "submit",
-    function (event) {
+    async function (event) {
 
         event.preventDefault();
 
@@ -524,23 +775,21 @@ gradeForm.addEventListener(
             );
 
 
-        const subject =
-            document.getElementById(
-                "gradeSubject"
-            ).value;
+        const subjectId =
+            Number(
+                gradeSubject.value
+            );
 
 
         const marks =
             Number(
-                document.getElementById(
-                    "gradeMarks"
-                ).value
+                gradeMarks.value
             );
 
 
         if (
             !studentId ||
-            !subject ||
+            !subjectId ||
             marks < 0 ||
             marks > 100
         ) {
@@ -550,66 +799,169 @@ gradeForm.addEventListener(
         }
 
 
-        const existingGrade =
-            grades.find(
-                (record) =>
-                    Number(
-                        record.studentId
-                    ) === studentId &&
-                    record.subject === subject
-            );
+        try {
 
+            /*
+             * Check if this student already
+             * has a grade for this subject.
+             */
 
-        if (existingGrade) {
-
-            existingGrade.marks =
-                marks;
-
-
-            existingGrade.grade =
-                calculateGrade(
-                    marks
+            const existingGrade =
+                grades.find(
+                    (record) =>
+                        Number(
+                            record.student_id
+                        ) === studentId &&
+                        Number(
+                            record.subject_id
+                        ) === subjectId
                 );
 
-        } else {
 
-            grades.push({
+            let response;
 
-                studentId,
 
-                subject,
+            /*
+             * UPDATE existing grade
+             */
 
-                marks,
+            if (existingGrade) {
 
-                grade:
-                    calculateGrade(
-                        marks
-                    )
+                response =
+                    await fetch(
+                        `${API_URL}/grades/${existingGrade.id}`,
+                        {
 
-            });
+                            method: "PUT",
+
+                            headers: {
+
+                                "Content-Type":
+                                    "application/json"
+
+                            },
+
+                            body:
+                                JSON.stringify({
+
+                                    studentId:
+                                        studentId,
+
+                                    subjectId:
+                                        subjectId,
+
+                                    marks:
+                                        marks
+
+                                })
+
+                        }
+                    );
+
+            }
+
+
+            /*
+             * ADD new grade
+             */
+
+            else {
+
+                response =
+                    await fetch(
+                        `${API_URL}/grades`,
+                        {
+
+                            method: "POST",
+
+                            headers: {
+
+                                "Content-Type":
+                                    "application/json"
+
+                            },
+
+                            body:
+                                JSON.stringify({
+
+                                    studentId:
+                                        studentId,
+
+                                    subjectId:
+                                        subjectId,
+
+                                    marks:
+                                        marks
+
+                                })
+
+                        }
+                    );
+
+            }
+
+
+            const result =
+                await response.json();
+
+
+            if (!response.ok) {
+
+                alert(
+                    result.message ||
+                    "Unable to save grade."
+                );
+
+                return;
+
+            }
+
+
+            if (existingGrade) {
+
+                alert(
+                    "Grade updated successfully."
+                );
+
+            } else {
+
+                alert(
+                    "Grade added successfully."
+                );
+
+            }
+
+
+            /*
+             * Reload everything
+             * from MySQL.
+             */
+
+            await loadData();
+
+
+            gradeForm.reset();
+
+
+        } catch (error) {
+
+            console.error(error);
+
+
+            alert(
+                "Unable to connect to the server."
+            );
 
         }
-
-
-        localStorage.setItem(
-            "grades",
-            JSON.stringify(
-                grades
-            )
-        );
-
-
-        applyGradeFilters();
-
-
-        gradeForm.reset();
 
     }
 );
 
 
 
-/* Search */
+// ==========================================
+// SEARCH
+// ==========================================
 
 searchGrade.addEventListener(
     "input",
@@ -617,7 +969,10 @@ searchGrade.addEventListener(
 );
 
 
-/* Student Filter */
+
+// ==========================================
+// STUDENT FILTER
+// ==========================================
 
 filterGradeStudent.addEventListener(
     "change",
@@ -625,7 +980,10 @@ filterGradeStudent.addEventListener(
 );
 
 
-/* Subject Filter */
+
+// ==========================================
+// SUBJECT FILTER
+// ==========================================
 
 filterGradeSubject.addEventListener(
     "change",
@@ -633,7 +991,10 @@ filterGradeSubject.addEventListener(
 );
 
 
-/* Marks Filter */
+
+// ==========================================
+// MARKS FILTER
+// ==========================================
 
 filterGradeRange.addEventListener(
     "change",
@@ -641,34 +1002,37 @@ filterGradeRange.addEventListener(
 );
 
 
-/* Clear Filters */
+
+// ==========================================
+// CLEAR FILTERS
+// ==========================================
 
 clearGradeFilters.addEventListener(
     "click",
     function () {
 
-        searchGrade.value = "";
+        searchGrade.value =
+            "";
 
-        filterGradeStudent.value = "";
+        filterGradeStudent.value =
+            "";
 
-        filterGradeSubject.value = "";
+        filterGradeSubject.value =
+            "";
 
-        filterGradeRange.value = "";
+        filterGradeRange.value =
+            "";
 
-        displayGradeSummary();
+        applyGradeFilters();
 
     }
 );
 
 
 
-/* Initial Load */
-
-loadStudents();
-
-displayGradeSummary();
-
-/* Export Grades */
+// ==========================================
+// EXPORT GRADES
+// ==========================================
 
 const exportGrades =
     document.getElementById(
@@ -680,7 +1044,9 @@ exportGrades.addEventListener(
     "click",
     function () {
 
-        if (grades.length === 0) {
+        if (
+            grades.length === 0
+        ) {
 
             return;
 
@@ -694,8 +1060,12 @@ exportGrades.addEventListener(
                     const student =
                         students.find(
                             (student) =>
-                                Number(student.id) ===
-                                Number(record.studentId)
+                                Number(
+                                    student.id
+                                ) ===
+                                Number(
+                                    record.student_id
+                                )
                         );
 
 
@@ -707,16 +1077,22 @@ exportGrades.addEventListener(
                                 : "Unknown",
 
                         StudentID:
-                            record.studentId,
+                            record.student_id,
 
                         Subject:
-                            record.subject,
+                            getSubjectName(
+                                record.subject_id
+                            ),
 
                         Marks:
                             record.marks,
 
                         Grade:
-                            record.grade
+                            calculateGrade(
+                                Number(
+                                    record.marks
+                                )
+                            )
 
                     };
 
@@ -748,3 +1124,11 @@ exportGrades.addEventListener(
 
     }
 );
+
+
+
+// ==========================================
+// INITIAL LOAD
+// ==========================================
+
+loadData();

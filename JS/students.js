@@ -1,3 +1,6 @@
+const API_URL = "http://localhost:3000";
+
+
 const studentForm =
     document.getElementById("studentForm");
 
@@ -22,33 +25,75 @@ const clearStudentFilters =
     );
 
 
-let students =
-    JSON.parse(
-        localStorage.getItem("students")
-    ) || [];
-
+let students = [];
 
 let editingId = null;
 
 
 
-/* Generate Student ID */
+/* Load Students from Backend */
 
-function generateStudentId() {
+async function loadStudents() {
 
-    if (students.length === 0) {
+    try {
 
-        return 1;
+        const response =
+            await fetch(
+                `${API_URL}/students`
+            );
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                "Failed to load students"
+            );
+
+        }
+
+
+        const data =
+            await response.json();
+
+
+        /*
+         * Backend uses "class".
+         * Frontend uses "studentClass".
+         * Convert it so the rest of the
+         * existing frontend continues
+         * working.
+         */
+
+        students =
+            data.map(
+                (student) => ({
+
+                    ...student,
+
+                    studentClass:
+                        student.class
+
+                })
+            );
+
+
+        loadClassFilters();
+
+        applyFilters();
+
+
+    } catch (error) {
+
+        console.error(error);
+
+
+        studentList.innerHTML = `
+            <p class="empty-message">
+                Unable to connect to the server.
+            </p>
+        `;
 
     }
-
-
-    return Math.max(
-        ...students.map(
-            (student) =>
-                Number(student.id)
-        )
-    ) + 1;
 
 }
 
@@ -287,7 +332,7 @@ function applyFilters() {
 
 studentForm.addEventListener(
     "submit",
-    function (event) {
+    async function (event) {
 
         event.preventDefault();
 
@@ -332,64 +377,124 @@ studentForm.addEventListener(
         };
 
 
-        if (
-            editingId === null
-        ) {
+        /*
+         * Backend expects "studentClass"
+         * in POST/PUT request body.
+         */
 
-            students.push({
+        try {
 
-                id:
-                    generateStudentId(),
+            let response;
 
-                ...studentData
 
-            });
+            /* ADD STUDENT */
 
-        } else {
+            if (
+                editingId === null
+            ) {
 
-            students =
-                students.map(
-                    (student) => {
+                response =
+                    await fetch(
+                        `${API_URL}/students`,
+                        {
 
-                        if (
-                            Number(student.id) ===
-                            Number(editingId)
-                        ) {
+                            method: "POST",
 
-                            return {
+                            headers: {
+                                "Content-Type":
+                                    "application/json"
+                            },
 
-                                id:
-                                    editingId,
-
-                                ...studentData
-
-                            };
+                            body:
+                                JSON.stringify(
+                                    studentData
+                                )
 
                         }
+                    );
+
+            }
 
 
-                        return student;
+            /* UPDATE STUDENT */
 
-                    }
+            else {
+
+                response =
+                    await fetch(
+                        `${API_URL}/students/${editingId}`,
+                        {
+
+                            method: "PUT",
+
+                            headers: {
+                                "Content-Type":
+                                    "application/json"
+                            },
+
+                            body:
+                                JSON.stringify(
+                                    studentData
+                                )
+
+                        }
+                    );
+
+            }
+
+
+            const result =
+                await response.json();
+
+
+            if (!response.ok) {
+
+                alert(
+                    result.message ||
+                    "Operation failed"
                 );
+
+                return;
+
+            }
+
+
+            if (
+                editingId === null
+            ) {
+
+                alert(
+                    "Student added successfully."
+                );
+
+            } else {
+
+                alert(
+                    "Student updated successfully."
+                );
+
+            }
 
 
             editingId = null;
 
+
+            studentForm.reset();
+
+
+            await loadStudents();
+
+
+        } catch (error) {
+
+            console.error(error);
+
+
+            alert(
+                "Unable to connect to the server."
+            );
+
         }
-
-
-        localStorage.setItem(
-            "students",
-            JSON.stringify(students)
-        );
-
-
-        loadClassFilters();
-
-        applyFilters();
-
-        studentForm.reset();
 
     }
 );
@@ -465,69 +570,90 @@ function editStudent(id) {
 
 /* Delete Student */
 
-function deleteStudent(id) {
+async function deleteStudent(id) {
 
-    students =
-        students.filter(
-            (student) =>
-                Number(student.id) !==
-                Number(id)
+    const confirmDelete =
+        confirm(
+            "Are you sure you want to delete this student?"
         );
 
 
-    localStorage.setItem(
-        "students",
-        JSON.stringify(students)
-    );
+    if (!confirmDelete) {
+
+        return;
+
+    }
 
 
-    let attendance =
-        JSON.parse(
-            localStorage.getItem(
-                "attendance"
-            )
-        ) || [];
+    try {
+
+        const response =
+            await fetch(
+                `${API_URL}/students/${id}`,
+                {
+
+                    method: "DELETE"
+
+                }
+            );
 
 
-    attendance =
-        attendance.filter(
-            (record) =>
-                Number(record.studentId) !==
-                Number(id)
+        const result =
+            await response.json();
+
+
+        if (!response.ok) {
+
+            alert(
+                result.message ||
+                "Unable to delete student"
+            );
+
+            return;
+
+        }
+
+
+        alert(
+            "Student deleted successfully."
         );
 
 
-    localStorage.setItem(
-        "attendance",
-        JSON.stringify(attendance)
-    );
+        /*
+         * Attendance and grades are no
+         * longer stored in localStorage.
+         *
+         * MySQL handles their deletion
+         * automatically through
+         * ON DELETE CASCADE.
+         */
 
 
-    let grades =
-        JSON.parse(
-            localStorage.getItem(
-                "grades"
-            )
-        ) || [];
+        if (
+            Number(editingId) ===
+            Number(id)
+        ) {
+
+            editingId = null;
+
+            studentForm.reset();
+
+        }
 
 
-    grades =
-        grades.filter(
-            (record) =>
-                Number(record.studentId) !==
-                Number(id)
+        await loadStudents();
+
+
+    } catch (error) {
+
+        console.error(error);
+
+
+        alert(
+            "Unable to connect to the server."
         );
 
-
-    localStorage.setItem(
-        "grades",
-        JSON.stringify(grades)
-    );
-
-
-    loadClassFilters();
-
-    applyFilters();
+    }
 
 }
 
@@ -541,12 +667,14 @@ searchStudent.addEventListener(
 );
 
 
+
 /* Class Filter */
 
 filterClass.addEventListener(
     "change",
     applyFilters
 );
+
 
 
 /* Section Filter */
@@ -557,12 +685,14 @@ filterSection.addEventListener(
 );
 
 
+
 /* Gender Filter */
 
 filterGender.addEventListener(
     "change",
     applyFilters
 );
+
 
 
 /* Clear Filters */
@@ -579,18 +709,13 @@ clearStudentFilters.addEventListener(
 
         filterGender.value = "";
 
-        displayStudents();
+        applyFilters();
 
     }
 );
 
 
 
-/* Initial Load */
-
-loadClassFilters();
-
-displayStudents();
 /* Export Students */
 
 const exportStudents =
@@ -603,7 +728,13 @@ exportStudents.addEventListener(
     "click",
     function () {
 
-        if (students.length === 0) {
+        if (
+            students.length === 0
+        ) {
+
+            alert(
+                "No students available to export."
+            );
 
             return;
 
@@ -614,21 +745,29 @@ exportStudents.addEventListener(
             students.map(
                 (student) => ({
 
-                    ID: student.id,
+                    ID:
+                        student.id,
 
-                    Name: student.name,
+                    Name:
+                        student.name,
 
-                    Age: student.age,
+                    Age:
+                        student.age,
 
-                    Gender: student.gender,
+                    Gender:
+                        student.gender,
 
-                    Class: student.studentClass,
+                    Class:
+                        student.studentClass,
 
-                    Section: student.section,
+                    Section:
+                        student.section,
 
-                    Email: student.email,
+                    Email:
+                        student.email,
 
-                    Phone: student.phone
+                    Phone:
+                        student.phone
 
                 })
             );
@@ -658,3 +797,9 @@ exportStudents.addEventListener(
 
     }
 );
+
+
+
+/* Initial Load */
+
+loadStudents();
