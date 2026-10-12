@@ -1,280 +1,182 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
 
-<head>
-
-    <meta charset="UTF-8">
-
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <title>Dashboard - Students Management System</title>
 
-    <link
-        rel="stylesheet"
-        href="css/styles.css"
-    >
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
 
-</head>
-
-<body>
-
+  <body>
     <header>
+      <h1>Students Management System</h1>
 
-        <h1>Students Management System</h1>
+      <nav>
+        <a href="index.html">Dashboard</a>
 
-        <nav>
+        <a href="students.html">Students</a>
 
-            <a href="index.html">Dashboard</a>
+        <a href="attendance.html">Attendance</a>
 
-            <a href="students.html">Students</a>
+        <a href="grades.html">Grades</a>
 
-            <a href="attendance.html">Attendance</a>
+        <span id="userRole"></span>
 
-            <a href="grades.html">Grades</a>
-
-            <span id="userRole"></span>
-
-            <button onclick="logout()">Logout</button>
-
-        </nav>
-
+        <button onclick="logout()">Logout</button>
+      </nav>
     </header>
 
-
     <main>
+      <section class="dashboard">
+        <h2>Dashboard</h2>
 
-        <section class="dashboard">
+        <!-- Statistics -->
 
-            <h2>Dashboard</h2>
+        <div class="cards">
+          <div class="card">
+            <h3>Total Students</h3>
 
+            <p id="totalStudents">0</p>
+          </div>
 
-            <!-- Statistics -->
+          <div class="card">
+            <h3>Overall Attendance</h3>
 
-            <div class="cards">
+            <p id="overallAttendance">0%</p>
+          </div>
 
-                <div class="card">
+          <div class="card">
+            <h3>Average Grade</h3>
 
-                    <h3>Total Students</h3>
+            <p id="averageGrade">0%</p>
+          </div>
 
-                    <p id="totalStudents">0</p>
+          <div class="card">
+            <h3>Students At Risk</h3>
 
-                </div>
+            <p id="studentsAtRisk">0</p>
+          </div>
+        </div>
 
+        <!-- Quick Access -->
 
-                <div class="card">
+        <div class="dashboard-section">
+          <h2>Quick Access</h2>
 
-                    <h3>Overall Attendance</h3>
+          <div class="quick-actions">
+            <a href="students.html"> Manage Students </a>
 
-                    <p id="overallAttendance">0%</p>
+            <a href="attendance.html"> Manage Attendance </a>
 
-                </div>
+            <a href="grades.html"> Manage Grades </a>
+          </div>
+        </div>
 
+        <!-- Recent Students -->
 
-                <div class="card">
+        <div class="dashboard-section">
+          <h2>Recent Students</h2>
 
-                    <h3>Average Grade</h3>
+          <div class="dashboard-student-list">
+            <div class="dashboard-student-row header">
+              <span>ID</span>
 
-                    <p id="averageGrade">0%</p>
+              <span>Name</span>
 
-                </div>
+              <span>Class</span>
 
+              <span>Section</span>
 
-                <div class="card">
-
-                    <h3>Students At Risk</h3>
-
-                    <p id="studentsAtRisk">0</p>
-
-                </div>
-
+              <span>Profile</span>
             </div>
 
+            <div id="recentStudents"></div>
+          </div>
+        </div>
 
-            <!-- Quick Access -->
+        <!-- Students Needing Attention -->
 
-            <div class="dashboard-section">
+        <div class="dashboard-section">
+          <h2>Students Needing Attention</h2>
 
-                <h2>Quick Access</h2>
+          <div id="warningStudents">
+            <p>No students currently need attention.</p>
+          </div>
+        </div>
 
-                <div class="quick-actions">
+        <!-- Performance Overview -->
 
-                    <a href="students.html">
-                        Manage Students
-                    </a>
+        <div class="dashboard-section">
+          <h2>Performance Overview</h2>
 
-                    <a href="attendance.html">
-                        Manage Attendance
-                    </a>
+          <div class="performance-overview">
+            <div>
+              <h3>Excellent</h3>
 
-                    <a href="grades.html">
-                        Manage Grades
-                    </a>
-
-                </div>
-
+              <p id="excellentStudents">0</p>
             </div>
 
+            <div>
+              <h3>Average</h3>
 
-            <!-- Recent Students -->
-
-            <div class="dashboard-section">
-
-                <h2>Recent Students</h2>
-
-                <div class="dashboard-student-list">
-
-                    <div class="dashboard-student-row header">
-
-                        <span>ID</span>
-
-                        <span>Name</span>
-
-                        <span>Class</span>
-
-                        <span>Section</span>
-
-                        <span>Profile</span>
-
-                    </div>
-
-                    <div id="recentStudents"></div>
-
-                </div>
-
+              <p id="averageStudents">0</p>
             </div>
 
+            <div>
+              <h3>Needs Improvement</h3>
 
-            <!-- Students Needing Attention -->
+              <p id="weakStudents">0</p>
+            </div>
+          </div>
+        </div>
+        <!-- Leaderboard -->
 
-            <div class="dashboard-section">
+        <div class="dashboard-section">
+          <h2>Student Leaderboard</h2>
 
-                <h2>Students Needing Attention</h2>
+          <div class="leaderboard">
+            <div class="leaderboard-row header">
+              <span>Rank</span>
 
-                <div id="warningStudents">
+              <span>Student</span>
 
-                    <p>
-                        No students currently need attention.
-                    </p>
+              <span>Attendance</span>
 
-                </div>
+              <span>Average Grade</span>
 
+              <span>Points</span>
+
+              <span>Badges</span>
             </div>
 
-
-            <!-- Performance Overview -->
-
-            <div class="dashboard-section">
-
-                <h2>Performance Overview</h2>
-
-                <div class="performance-overview">
-
-                    <div>
-
-                        <h3>Excellent</h3>
-
-                        <p id="excellentStudents">
-                            0
-                        </p>
-
-                    </div>
-
-                    <div>
-
-                        <h3>Average</h3>
-
-                        <p id="averageStudents">
-                            0
-                        </p>
-
-                    </div>
-
-                    <div>
-
-                        <h3>Needs Improvement</h3>
-
-                        <p id="weakStudents">
-                            0
-                        </p>
-
-                    </div>
-
-                </div>
-
-            </div>
-            <!-- Leaderboard -->
-
-            <div class="dashboard-section">
-
-                <h2>Student Leaderboard</h2>
-
-                <div class="leaderboard">
-
-                    <div class="leaderboard-row header">
-
-                        <span>Rank</span>
-
-                        <span>Student</span>
-
-                        <span>Attendance</span>
-
-                        <span>Average Grade</span>
-
-                        <span>Points</span>
-
-                        <span>Badges</span>
-
-                    </div>
-
-                    <div id="leaderboardList"></div>
-
-                </div>
-
-            </div>
-
-        </section>
-
+            <div id="leaderboardList"></div>
+          </div>
+        </div>
+      </section>
     </main>
 
-
     <script>
-
-        if (
-            localStorage.getItem("isLoggedIn")
-            !== "true"
-        ) {
-
-            window.location.href = "login.html";
-
-        }
-
+      if (localStorage.getItem("isLoggedIn") !== "true") {
+        window.location.href = "login.html";
+      }
     </script>
-
 
     <script src="js/script.js"></script>
 
-
     <script>
+      document.getElementById("userRole").textContent =
+        localStorage.getItem("userRole");
 
-        document.getElementById("userRole").textContent =
-            localStorage.getItem("userRole");
+      function logout() {
+        localStorage.removeItem("isLoggedIn");
 
+        localStorage.removeItem("userRole");
 
-        function logout() {
-
-            localStorage.removeItem("isLoggedIn");
-
-            localStorage.removeItem("userRole");
-
-            window.location.href = "login.html";
-
-        }
-
+        window.location.href = "login.html";
+      }
     </script>
-
-</body>
-
+  </body>
 </html>

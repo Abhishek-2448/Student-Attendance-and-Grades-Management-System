@@ -1,309 +1,169 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
 
-<head>
-
-    <meta charset="UTF-8">
-
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <title>Attendance - Students Management System</title>
 
-    <link
-        rel="stylesheet"
-        href="css/styles.css"
-    >
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
 
-</head>
-
-<body>
-
+  <body>
     <header>
+      <h1>Students Management System</h1>
 
-        <h1>Students Management System</h1>
+      <nav>
+        <a href="index.html">Dashboard</a>
 
-        <nav>
+        <a href="students.html">Students</a>
 
-            <a href="index.html">Dashboard</a>
+        <a href="attendance.html">Attendance</a>
 
-            <a href="students.html">Students</a>
+        <a href="grades.html">Grades</a>
 
-            <a href="attendance.html">Attendance</a>
+        <span id="userRole"></span>
 
-            <a href="grades.html">Grades</a>
-
-            <span id="userRole"></span>
-
-            <button onclick="logout()">Logout</button>
-
-        </nav>
-
+        <button onclick="logout()">Logout</button>
+      </nav>
     </header>
 
-
     <main>
+      <section class="attendance-management">
+        <h2>Attendance Management</h2>
 
-        <section class="attendance-management">
+        <!-- Mark Attendance -->
 
-            <h2>Attendance Management</h2>
+        <div class="student-form">
+          <h3>Mark Attendance</h3>
 
+          <form id="attendanceForm">
+            <div class="form-group">
+              <label for="attendanceStudent"> Student </label>
 
-            <!-- Mark Attendance -->
-
-            <div class="student-form">
-
-                <h3>Mark Attendance</h3>
-
-                <form id="attendanceForm">
-
-                    <div class="form-group">
-
-                        <label for="attendanceStudent">
-                            Student
-                        </label>
-
-                        <select
-                            id="attendanceStudent"
-                            required
-                        >
-
-                            <option value="">
-                                Select Student
-                            </option>
-
-                        </select>
-
-                    </div>
-
-
-                    <div class="form-group">
-
-                        <label for="attendanceDate">
-                            Date
-                        </label>
-
-                        <input
-                            type="date"
-                            id="attendanceDate"
-                            required
-                        >
-
-                    </div>
-
-
-                    <div class="form-group">
-
-                        <label for="attendanceStatus">
-                            Status
-                        </label>
-
-                        <select
-                            id="attendanceStatus"
-                            required
-                        >
-
-                            <option value="">
-                                Select Status
-                            </option>
-
-                            <option value="Present">
-                                Present
-                            </option>
-
-                            <option value="Absent">
-                                Absent
-                            </option>
-
-                        </select>
-
-                    </div>
-
-
-                    <button type="submit">
-                        Mark Attendance
-                    </button>
-
-                </form>
-
+              <select id="attendanceStudent" required>
+                <option value="">Select Student</option>
+              </select>
             </div>
 
+            <div class="form-group">
+              <label for="attendanceDate"> Date </label>
 
-            <!-- Attendance Summary -->
-
-            <div class="student-records">
-
-                <h3>Student Attendance</h3>
-
-                <button
-                    type="button"
-                    id="exportAttendance"
-                    class="export-button"
-                >
-                    Export Attendance to Excel
-                </button>
-
-
-                <div class="filter-container">
-
-                    <div class="search-box">
-
-                        <input
-                            type="text"
-                            id="searchAttendance"
-                            placeholder="Search student..."
-                        >
-
-                    </div>
-
-
-                    <select id="filterAttendanceStudent">
-
-                        <option value="">
-                            All Students
-                        </option>
-
-                    </select>
-
-
-                    <input
-                        type="date"
-                        id="filterAttendanceDate"
-                    >
-
-
-                    <select id="filterAttendanceStatus">
-
-                        <option value="">
-                            All Status
-                        </option>
-
-                        <option value="Present">
-                            Present
-                        </option>
-
-                        <option value="Absent">
-                            Absent
-                        </option>
-
-                    </select>
-
-
-                    <button
-                        type="button"
-                        id="clearAttendanceFilters"
-                    >
-                        Clear Filters
-                    </button>
-
-                </div>
-
-
-                <div class="attendance-summary-list">
-
-                    <div class="attendance-summary-row header">
-
-                        <span>Student</span>
-
-                        <span>Total Classes</span>
-
-                        <span>Present</span>
-
-                        <span>Absent</span>
-
-                        <span>Attendance</span>
-
-                        <span>Profile</span>
-
-                    </div>
-
-
-                    <div id="attendanceSummaryList"></div>
-
-                </div>
-
+              <input type="date" id="attendanceDate" required />
             </div>
 
+            <div class="form-group">
+              <label for="attendanceStatus"> Status </label>
 
-            <!-- Heatmap -->
+              <select id="attendanceStatus" required>
+                <option value="">Select Status</option>
 
-            <div class="student-records">
+                <option value="Present">Present</option>
 
-                <h3>Attendance Heatmap</h3>
-
-                <p>
-                    Daily attendance pattern for the selected student.
-                </p>
-
-
-                <div class="heatmap-controls">
-
-                    <select id="heatmapStudent">
-
-                        <option value="">
-                            Select Student
-                        </option>
-
-                    </select>
-
-                </div>
-
-
-                <div id="attendanceHeatmap"></div>
-
+                <option value="Absent">Absent</option>
+              </select>
             </div>
 
-        </section>
+            <button type="submit">Mark Attendance</button>
+          </form>
+        </div>
 
+        <!-- Attendance Summary -->
+
+        <div class="student-records">
+          <h3>Student Attendance</h3>
+
+          <button type="button" id="exportAttendance" class="export-button">
+            Export Attendance to Excel
+          </button>
+
+          <div class="filter-container">
+            <div class="search-box">
+              <input
+                type="text"
+                id="searchAttendance"
+                placeholder="Search student..."
+              />
+            </div>
+
+            <select id="filterAttendanceStudent">
+              <option value="">All Students</option>
+            </select>
+
+            <input type="date" id="filterAttendanceDate" />
+
+            <select id="filterAttendanceStatus">
+              <option value="">All Status</option>
+
+              <option value="Present">Present</option>
+
+              <option value="Absent">Absent</option>
+            </select>
+
+            <button type="button" id="clearAttendanceFilters">
+              Clear Filters
+            </button>
+          </div>
+
+          <div class="attendance-summary-list">
+            <div class="attendance-summary-row header">
+              <span>Student</span>
+
+              <span>Total Classes</span>
+
+              <span>Present</span>
+
+              <span>Absent</span>
+
+              <span>Attendance</span>
+
+              <span>Profile</span>
+            </div>
+
+            <div id="attendanceSummaryList"></div>
+          </div>
+        </div>
+
+        <!-- Heatmap -->
+
+        <div class="student-records">
+          <h3>Attendance Heatmap</h3>
+
+          <p>Daily attendance pattern for the selected student.</p>
+
+          <div class="heatmap-controls">
+            <select id="heatmapStudent">
+              <option value="">Select Student</option>
+            </select>
+          </div>
+
+          <div id="attendanceHeatmap"></div>
+        </div>
+      </section>
     </main>
 
-
     <script>
-
-        if (
-            localStorage.getItem("isLoggedIn")
-            !== "true"
-        ) {
-
-            window.location.href =
-                "login.html";
-
-        }
-
+      if (localStorage.getItem("isLoggedIn") !== "true") {
+        window.location.href = "login.html";
+      }
     </script>
-
 
     <script src="js/attendance.js"></script>
 
-
     <script>
+      document.getElementById("userRole").textContent =
+        localStorage.getItem("userRole");
 
-        document.getElementById(
-            "userRole"
-        ).textContent =
-            localStorage.getItem("userRole");
+      function logout() {
+        localStorage.removeItem("isLoggedIn");
 
+        localStorage.removeItem("userRole");
 
-        function logout() {
-
-            localStorage.removeItem(
-                "isLoggedIn"
-            );
-
-            localStorage.removeItem(
-                "userRole"
-            );
-
-            window.location.href =
-                "login.html";
-
-        }
-
+        window.location.href = "login.html";
+      }
     </script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
     <script src="js/students.js"></script>
-</body>
-
+  </body>
 </html>

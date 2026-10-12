@@ -1,362 +1,193 @@
 const API_URL = "http://localhost:3000";
 
+const attendanceForm = document.getElementById("attendanceForm");
 
-const attendanceForm =
-    document.getElementById(
-        "attendanceForm"
-    );
+const attendanceStudent = document.getElementById("attendanceStudent");
 
-const attendanceStudent =
-    document.getElementById(
-        "attendanceStudent"
-    );
+const attendanceDate = document.getElementById("attendanceDate");
 
-const attendanceDate =
-    document.getElementById(
-        "attendanceDate"
-    );
+const attendanceStatus = document.getElementById("attendanceStatus");
 
-const attendanceStatus =
-    document.getElementById(
-        "attendanceStatus"
-    );
+const attendanceSummaryList = document.getElementById("attendanceSummaryList");
 
-const attendanceSummaryList =
-    document.getElementById(
-        "attendanceSummaryList"
-    );
+const searchAttendance = document.getElementById("searchAttendance");
 
-const searchAttendance =
-    document.getElementById(
-        "searchAttendance"
-    );
+const filterAttendanceStudent = document.getElementById(
+  "filterAttendanceStudent",
+);
 
-const filterAttendanceStudent =
-    document.getElementById(
-        "filterAttendanceStudent"
-    );
+const filterAttendanceDate = document.getElementById("filterAttendanceDate");
 
-const filterAttendanceDate =
-    document.getElementById(
-        "filterAttendanceDate"
-    );
+const filterAttendanceStatus = document.getElementById(
+  "filterAttendanceStatus",
+);
 
-const filterAttendanceStatus =
-    document.getElementById(
-        "filterAttendanceStatus"
-    );
+const clearAttendanceFilters = document.getElementById(
+  "clearAttendanceFilters",
+);
 
-const clearAttendanceFilters =
-    document.getElementById(
-        "clearAttendanceFilters"
-    );
+const heatmapStudent = document.getElementById("heatmapStudent");
 
-const heatmapStudent =
-    document.getElementById(
-        "heatmapStudent"
-    );
-
-const attendanceHeatmap =
-    document.getElementById(
-        "attendanceHeatmap"
-    );
-
+const attendanceHeatmap = document.getElementById("attendanceHeatmap");
 
 let attendance = [];
 
 let students = [];
-
 
 // ==========================================
 // LOAD DATA FROM BACKEND
 // ==========================================
 
 async function loadData() {
+  try {
+    const studentsResponse = await fetch(`${API_URL}/students`);
 
-    try {
+    if (!studentsResponse.ok) {
+      throw new Error("Failed to load students");
+    }
 
-        const studentsResponse =
-            await fetch(
-                `${API_URL}/students`
-            );
+    const studentsData = await studentsResponse.json();
 
+    students = studentsData.map((student) => ({
+      ...student,
 
-        if (!studentsResponse.ok) {
+      studentClass: student.class,
+    }));
 
-            throw new Error(
-                "Failed to load students"
-            );
+    const attendanceResponse = await fetch(`${API_URL}/attendance`);
 
-        }
+    if (!attendanceResponse.ok) {
+      throw new Error("Failed to load attendance");
+    }
 
+    attendance = await attendanceResponse.json();
 
-        const studentsData =
-            await studentsResponse.json();
+    loadStudents();
 
+    applyAttendanceFilters();
 
-        students =
-            studentsData.map(
-                (student) => ({
+    displayHeatmap(Number(heatmapStudent.value));
+  } catch (error) {
+    console.error(error);
 
-                    ...student,
-
-                    studentClass:
-                        student.class
-
-                })
-            );
-
-
-        const attendanceResponse =
-            await fetch(
-                `${API_URL}/attendance`
-            );
-
-
-        if (!attendanceResponse.ok) {
-
-            throw new Error(
-                "Failed to load attendance"
-            );
-
-        }
-
-
-        attendance =
-            await attendanceResponse.json();
-
-
-        loadStudents();
-
-        applyAttendanceFilters();
-
-        displayHeatmap(
-            Number(
-                heatmapStudent.value
-            )
-        );
-
-
-    } catch (error) {
-
-        console.error(error);
-
-
-        attendanceSummaryList.innerHTML = `
+    attendanceSummaryList.innerHTML = `
             <p class="empty-message">
                 Unable to connect to the server.
             </p>
         `;
-
-    }
-
+  }
 }
-
-
 
 // ==========================================
 // LOAD STUDENTS
 // ==========================================
 
 function loadStudents() {
-
-    attendanceStudent.innerHTML = `
+  attendanceStudent.innerHTML = `
         <option value="">
             Select Student
         </option>
     `;
 
-
-    filterAttendanceStudent.innerHTML = `
+  filterAttendanceStudent.innerHTML = `
         <option value="">
             All Students
         </option>
     `;
 
-
-    heatmapStudent.innerHTML = `
+  heatmapStudent.innerHTML = `
         <option value="">
             Select Student
         </option>
     `;
 
+  students.forEach((student) => {
+    const option = document.createElement("option");
 
-    students.forEach(
-        (student) => {
+    option.value = student.id;
 
-            const option =
-                document.createElement(
-                    "option"
-                );
+    option.textContent = student.name;
 
+    attendanceStudent.appendChild(option);
 
-            option.value =
-                student.id;
+    const filterOption = document.createElement("option");
 
+    filterOption.value = student.id;
 
-            option.textContent =
-                student.name;
+    filterOption.textContent = student.name;
 
+    filterAttendanceStudent.appendChild(filterOption);
 
-            attendanceStudent.appendChild(
-                option
-            );
+    const heatmapOption = document.createElement("option");
 
+    heatmapOption.value = student.id;
 
-            const filterOption =
-                document.createElement(
-                    "option"
-                );
+    heatmapOption.textContent = student.name;
 
-
-            filterOption.value =
-                student.id;
-
-
-            filterOption.textContent =
-                student.name;
-
-
-            filterAttendanceStudent.appendChild(
-                filterOption
-            );
-
-
-            const heatmapOption =
-                document.createElement(
-                    "option"
-                );
-
-
-            heatmapOption.value =
-                student.id;
-
-
-            heatmapOption.textContent =
-                student.name;
-
-
-            heatmapStudent.appendChild(
-                heatmapOption
-            );
-
-        }
-    );
-
+    heatmapStudent.appendChild(heatmapOption);
+  });
 }
-
-
 
 // ==========================================
 // ATTENDANCE DATA
 // ==========================================
 
-function getAttendanceData(
-    studentId,
-    records = attendance
-) {
+function getAttendanceData(studentId, records = attendance) {
+  const studentRecords = records.filter(
+    (record) => Number(record.student_id) === Number(studentId),
+  );
 
-    const studentRecords =
-        records.filter(
-            (record) =>
-                Number(
-                    record.student_id
-                ) ===
-                Number(studentId)
-        );
+  const total = studentRecords.length;
 
+  const present = studentRecords.filter(
+    (record) => record.status === "Present",
+  ).length;
 
-    const total =
-        studentRecords.length;
+  const absent = studentRecords.filter(
+    (record) => record.status === "Absent",
+  ).length;
 
+  const percentage = total > 0 ? (present / total) * 100 : 0;
 
-    const present =
-        studentRecords.filter(
-            (record) =>
-                record.status ===
-                "Present"
-        ).length;
+  return {
+    total,
 
+    present,
 
-    const absent =
-        studentRecords.filter(
-            (record) =>
-                record.status ===
-                "Absent"
-        ).length;
+    absent,
 
-
-    const percentage =
-        total > 0
-            ? (present / total) * 100
-            : 0;
-
-
-    return {
-
-        total,
-
-        present,
-
-        absent,
-
-        percentage
-
-    };
-
+    percentage,
+  };
 }
-
-
 
 // ==========================================
 // DISPLAY SUMMARY
 // ==========================================
 
 function displayAttendanceSummary(
-    studentData = students,
-    records = attendance
+  studentData = students,
+  records = attendance,
 ) {
+  attendanceSummaryList.innerHTML = "";
 
-    attendanceSummaryList.innerHTML =
-        "";
-
-
-    if (
-        studentData.length === 0
-    ) {
-
-        attendanceSummaryList.innerHTML = `
+  if (studentData.length === 0) {
+    attendanceSummaryList.innerHTML = `
             <p class="empty-message">
                 No students found.
             </p>
         `;
 
-        return;
+    return;
+  }
 
-    }
+  studentData.forEach((student) => {
+    const data = getAttendanceData(student.id, records);
 
+    const row = document.createElement("div");
 
-    studentData.forEach(
-        (student) => {
+    row.className = "attendance-summary-row";
 
-            const data =
-                getAttendanceData(
-                    student.id,
-                    records
-                );
-
-
-            const row =
-                document.createElement(
-                    "div"
-                );
-
-
-            row.className =
-                "attendance-summary-row";
-
-
-            row.innerHTML = `
+    row.innerHTML = `
 
                 <span>
                     ${student.name}
@@ -391,546 +222,275 @@ function displayAttendanceSummary(
 
             `;
 
-
-            attendanceSummaryList.appendChild(
-                row
-            );
-
-        }
-    );
-
+    attendanceSummaryList.appendChild(row);
+  });
 }
-
-
 
 // ==========================================
 // APPLY FILTERS
 // ==========================================
 
 function applyAttendanceFilters() {
+  const searchValue = searchAttendance.value.toLowerCase().trim();
 
-    const searchValue =
-        searchAttendance.value
-            .toLowerCase()
-            .trim();
+  const selectedStudent = filterAttendanceStudent.value;
 
+  const selectedDate = filterAttendanceDate.value;
 
-    const selectedStudent =
-        filterAttendanceStudent.value;
+  const selectedStatus = filterAttendanceStatus.value;
 
-
-    const selectedDate =
-        filterAttendanceDate.value;
-
-
-    const selectedStatus =
-        filterAttendanceStatus.value;
-
-
-    const filteredRecords =
-        attendance.filter(
-            (record) => {
-
-                const student =
-                    students.find(
-                        (student) =>
-                            Number(student.id) ===
-                            Number(record.student_id)
-                    );
-
-
-                if (!student) {
-
-                    return false;
-
-                }
-
-
-                const matchesSearch =
-                    student.name
-                        .toLowerCase()
-                        .includes(
-                            searchValue
-                        );
-
-
-                const matchesStudent =
-                    !selectedStudent ||
-                    Number(
-                        record.student_id
-                    ) ===
-                        Number(
-                            selectedStudent
-                        );
-
-
-                const matchesDate =
-                    !selectedDate ||
-                    record.date ===
-                        selectedDate;
-
-
-                const matchesStatus =
-                    !selectedStatus ||
-                    record.status ===
-                        selectedStatus;
-
-
-                return (
-                    matchesSearch &&
-                    matchesStudent &&
-                    matchesDate &&
-                    matchesStatus
-                );
-
-            }
-        );
-
-
-    let filteredStudents;
-
-
-    if (
-        selectedStudent
-    ) {
-
-        filteredStudents =
-            students.filter(
-                (student) =>
-                    Number(student.id) ===
-                    Number(selectedStudent)
-            );
-
-    } else {
-
-        filteredStudents =
-            students.filter(
-                (student) =>
-                    filteredRecords.some(
-                        (record) =>
-                            Number(
-                                record.student_id
-                            ) ===
-                            Number(student.id)
-                    )
-            );
-
-    }
-
-
-    /*
-     * If only search is active,
-     * students without attendance
-     * should still appear.
-     */
-
-    if (
-        searchValue &&
-        !selectedDate &&
-        !selectedStatus &&
-        !selectedStudent
-    ) {
-
-        filteredStudents =
-            students.filter(
-                (student) =>
-                    student.name
-                        .toLowerCase()
-                        .includes(
-                            searchValue
-                        )
-            );
-
-    }
-
-
-    /*
-     * If no filters are active,
-     * display every student.
-     */
-
-    if (
-        !searchValue &&
-        !selectedDate &&
-        !selectedStatus &&
-        !selectedStudent
-    ) {
-
-        filteredStudents =
-            students;
-
-    }
-
-
-    displayAttendanceSummary(
-        filteredStudents,
-        filteredRecords
+  const filteredRecords = attendance.filter((record) => {
+    const student = students.find(
+      (student) => Number(student.id) === Number(record.student_id),
     );
 
+    if (!student) {
+      return false;
+    }
+
+    const matchesSearch = student.name.toLowerCase().includes(searchValue);
+
+    const matchesStudent =
+      !selectedStudent || Number(record.student_id) === Number(selectedStudent);
+
+    const matchesDate = !selectedDate || record.date === selectedDate;
+
+    const matchesStatus = !selectedStatus || record.status === selectedStatus;
+
+    return matchesSearch && matchesStudent && matchesDate && matchesStatus;
+  });
+
+  let filteredStudents;
+
+  if (selectedStudent) {
+    filteredStudents = students.filter(
+      (student) => Number(student.id) === Number(selectedStudent),
+    );
+  } else {
+    filteredStudents = students.filter((student) =>
+      filteredRecords.some(
+        (record) => Number(record.student_id) === Number(student.id),
+      ),
+    );
+  }
+
+  /*
+   * If only search is active,
+   * students without attendance
+   * should still appear.
+   */
+
+  if (searchValue && !selectedDate && !selectedStatus && !selectedStudent) {
+    filteredStudents = students.filter((student) =>
+      student.name.toLowerCase().includes(searchValue),
+    );
+  }
+
+  /*
+   * If no filters are active,
+   * display every student.
+   */
+
+  if (!searchValue && !selectedDate && !selectedStatus && !selectedStudent) {
+    filteredStudents = students;
+  }
+
+  displayAttendanceSummary(filteredStudents, filteredRecords);
 }
-
-
 
 // ==========================================
 // MARK / UPDATE ATTENDANCE
 // ==========================================
 
-attendanceForm.addEventListener(
-    "submit",
-    async function (event) {
+attendanceForm.addEventListener("submit", async function (event) {
+  event.preventDefault();
 
-        event.preventDefault();
+  const studentId = Number(attendanceStudent.value);
 
+  const date = attendanceDate.value;
 
-        const studentId =
-            Number(
-                attendanceStudent.value
-            );
+  const status = attendanceStatus.value;
 
+  if (!studentId || !date || !status) {
+    return;
+  }
 
-        const date =
-            attendanceDate.value;
+  try {
+    /*
+     * Check whether attendance
+     * already exists for this
+     * student and date.
+     */
 
+    const existingRecord = attendance.find(
+      (record) =>
+        Number(record.student_id) === studentId && record.date === date,
+    );
 
-        const status =
-            attendanceStatus.value;
+    let response;
 
+    /*
+     * UPDATE existing attendance
+     */
 
-        if (
-            !studentId ||
-            !date ||
-            !status
-        ) {
+    if (existingRecord) {
+      response = await fetch(`${API_URL}/attendance/${existingRecord.id}`, {
+        method: "PUT",
 
-            return;
+        headers: {
+          "Content-Type": "application/json",
+        },
 
-        }
+        body: JSON.stringify({
+          studentId: studentId,
 
+          date: date,
 
-        try {
+          status: status,
+        }),
+      });
+    } else {
 
-            /*
-             * Check whether attendance
-             * already exists for this
-             * student and date.
-             */
+    /*
+     * ADD new attendance
+     */
+      response = await fetch(`${API_URL}/attendance`, {
+        method: "POST",
 
-            const existingRecord =
-                attendance.find(
-                    (record) =>
-                        Number(
-                            record.student_id
-                        ) ===
-                            studentId &&
-                        record.date === date
-                );
+        headers: {
+          "Content-Type": "application/json",
+        },
 
+        body: JSON.stringify({
+          studentId: studentId,
 
-            let response;
+          date: date,
 
-
-            /*
-             * UPDATE existing attendance
-             */
-
-            if (existingRecord) {
-
-                response =
-                    await fetch(
-                        `${API_URL}/attendance/${existingRecord.id}`,
-                        {
-
-                            method: "PUT",
-
-                            headers: {
-                                "Content-Type":
-                                    "application/json"
-                            },
-
-                            body:
-                                JSON.stringify({
-
-                                    studentId:
-                                        studentId,
-
-                                    date:
-                                        date,
-
-                                    status:
-                                        status
-
-                                })
-
-                        }
-                    );
-
-            }
-
-
-            /*
-             * ADD new attendance
-             */
-
-            else {
-
-                response =
-                    await fetch(
-                        `${API_URL}/attendance`,
-                        {
-
-                            method: "POST",
-
-                            headers: {
-                                "Content-Type":
-                                    "application/json"
-                            },
-
-                            body:
-                                JSON.stringify({
-
-                                    studentId:
-                                        studentId,
-
-                                    date:
-                                        date,
-
-                                    status:
-                                        status
-
-                                })
-
-                        }
-                    );
-
-            }
-
-
-            const result =
-                await response.json();
-
-
-            if (!response.ok) {
-
-                alert(
-                    result.message ||
-                    "Unable to save attendance."
-                );
-
-                return;
-
-            }
-
-
-            if (existingRecord) {
-
-                alert(
-                    "Attendance updated successfully."
-                );
-
-            } else {
-
-                alert(
-                    "Attendance marked successfully."
-                );
-
-            }
-
-
-            /*
-             * Reload data from MySQL.
-             */
-
-            await loadData();
-
-
-            /*
-             * Keep selected student
-             * for heatmap if possible.
-             */
-
-            if (
-                heatmapStudent.value
-            ) {
-
-                displayHeatmap(
-                    Number(
-                        heatmapStudent.value
-                    )
-                );
-
-            }
-
-
-            attendanceForm.reset();
-
-
-        } catch (error) {
-
-            console.error(error);
-
-
-            alert(
-                "Unable to connect to the server."
-            );
-
-        }
-
+          status: status,
+        }),
+      });
     }
-);
 
+    const result = await response.json();
 
+    if (!response.ok) {
+      alert(result.message || "Unable to save attendance.");
+
+      return;
+    }
+
+    if (existingRecord) {
+      alert("Attendance updated successfully.");
+    } else {
+      alert("Attendance marked successfully.");
+    }
+
+    /*
+     * Reload data from MySQL.
+     */
+
+    await loadData();
+
+    /*
+     * Keep selected student
+     * for heatmap if possible.
+     */
+
+    if (heatmapStudent.value) {
+      displayHeatmap(Number(heatmapStudent.value));
+    }
+
+    attendanceForm.reset();
+  } catch (error) {
+    console.error(error);
+
+    alert("Unable to connect to the server.");
+  }
+});
 
 // ==========================================
 // SEARCH
 // ==========================================
 
-searchAttendance.addEventListener(
-    "input",
-    applyAttendanceFilters
-);
-
-
+searchAttendance.addEventListener("input", applyAttendanceFilters);
 
 // ==========================================
 // STUDENT FILTER
 // ==========================================
 
-filterAttendanceStudent.addEventListener(
-    "change",
-    applyAttendanceFilters
-);
-
-
+filterAttendanceStudent.addEventListener("change", applyAttendanceFilters);
 
 // ==========================================
 // DATE FILTER
 // ==========================================
 
-filterAttendanceDate.addEventListener(
-    "change",
-    applyAttendanceFilters
-);
-
-
+filterAttendanceDate.addEventListener("change", applyAttendanceFilters);
 
 // ==========================================
 // STATUS FILTER
 // ==========================================
 
-filterAttendanceStatus.addEventListener(
-    "change",
-    applyAttendanceFilters
-);
-
-
+filterAttendanceStatus.addEventListener("change", applyAttendanceFilters);
 
 // ==========================================
 // CLEAR FILTERS
 // ==========================================
 
-clearAttendanceFilters.addEventListener(
-    "click",
-    function () {
+clearAttendanceFilters.addEventListener("click", function () {
+  searchAttendance.value = "";
 
-        searchAttendance.value =
-            "";
+  filterAttendanceStudent.value = "";
 
-        filterAttendanceStudent.value =
-            "";
+  filterAttendanceDate.value = "";
 
-        filterAttendanceDate.value =
-            "";
+  filterAttendanceStatus.value = "";
 
-        filterAttendanceStatus.value =
-            "";
-
-        applyAttendanceFilters();
-
-    }
-);
-
-
+  applyAttendanceFilters();
+});
 
 // ==========================================
 // HEATMAP
 // ==========================================
 
 function displayHeatmap(studentId) {
+  attendanceHeatmap.innerHTML = "";
 
-    attendanceHeatmap.innerHTML =
-        "";
-
-
-    if (!studentId) {
-
-        attendanceHeatmap.innerHTML = `
+  if (!studentId) {
+    attendanceHeatmap.innerHTML = `
             <p>
                 Select a student to view the attendance heatmap.
             </p>
         `;
 
-        return;
+    return;
+  }
 
-    }
+  const studentAttendance = attendance.filter(
+    (record) => Number(record.student_id) === Number(studentId),
+  );
 
-
-    const studentAttendance =
-        attendance.filter(
-            (record) =>
-                Number(
-                    record.student_id
-                ) ===
-                Number(studentId)
-        );
-
-
-    if (
-        studentAttendance.length === 0
-    ) {
-
-        attendanceHeatmap.innerHTML = `
+  if (studentAttendance.length === 0) {
+    attendanceHeatmap.innerHTML = `
             <p>
                 No attendance records available.
             </p>
         `;
 
-        return;
+    return;
+  }
 
+  studentAttendance.forEach((record) => {
+    const day = document.createElement("div");
+
+    day.className = "heatmap-day";
+
+    if (record.status === "Present") {
+      day.classList.add("heatmap-present");
+    } else {
+      day.classList.add("heatmap-absent");
     }
 
-
-    studentAttendance.forEach(
-        (record) => {
-
-            const day =
-                document.createElement(
-                    "div"
-                );
-
-
-            day.className =
-                "heatmap-day";
-
-
-            if (
-                record.status ===
-                "Present"
-            ) {
-
-                day.classList.add(
-                    "heatmap-present"
-                );
-
-            } else {
-
-                day.classList.add(
-                    "heatmap-absent"
-                );
-
-            }
-
-
-            day.innerHTML = `
+    day.innerHTML = `
 
                 <strong>
                     ${record.date}
@@ -942,118 +502,49 @@ function displayHeatmap(studentId) {
 
             `;
 
-
-            attendanceHeatmap.appendChild(
-                day
-            );
-
-        }
-    );
-
+    attendanceHeatmap.appendChild(day);
+  });
 }
 
-
-
-heatmapStudent.addEventListener(
-    "change",
-    function () {
-
-        displayHeatmap(
-            Number(this.value)
-        );
-
-    }
-);
-
-
+heatmapStudent.addEventListener("change", function () {
+  displayHeatmap(Number(this.value));
+});
 
 // ==========================================
 // EXPORT ATTENDANCE
 // ==========================================
 
-const exportAttendance =
-    document.getElementById(
-        "exportAttendance"
+const exportAttendance = document.getElementById("exportAttendance");
+
+exportAttendance.addEventListener("click", function () {
+  if (attendance.length === 0) {
+    return;
+  }
+
+  const exportData = attendance.map((record) => {
+    const student = students.find(
+      (student) => Number(student.id) === Number(record.student_id),
     );
 
+    return {
+      Student: student ? student.name : "Unknown",
 
-exportAttendance.addEventListener(
-    "click",
-    function () {
+      StudentID: record.student_id,
 
-        if (
-            attendance.length === 0
-        ) {
+      Date: record.date,
 
-            return;
+      Status: record.status,
+    };
+  });
 
-        }
+  const worksheet = XLSX.utils.json_to_sheet(exportData);
 
+  const workbook = XLSX.utils.book_new();
 
-        const exportData =
-            attendance.map(
-                (record) => {
+  XLSX.utils.book_append_sheet(workbook, worksheet, "Attendance");
 
-                    const student =
-                        students.find(
-                            (student) =>
-                                Number(
-                                    student.id
-                                ) ===
-                                Number(
-                                    record.student_id
-                                )
-                        );
-
-
-                    return {
-
-                        Student:
-                            student
-                                ? student.name
-                                : "Unknown",
-
-                        StudentID:
-                            record.student_id,
-
-                        Date:
-                            record.date,
-
-                        Status:
-                            record.status
-
-                    };
-
-                }
-            );
-
-
-        const worksheet =
-            XLSX.utils.json_to_sheet(
-                exportData
-            );
-
-
-        const workbook =
-            XLSX.utils.book_new();
-
-
-        XLSX.utils.book_append_sheet(
-            workbook,
-            worksheet,
-            "Attendance"
-        );
-
-
-        XLSX.writeFile(
-            workbook,
-            "attendance.xlsx"
-        );
-
-    }
-);
-
-
+  XLSX.writeFile(workbook, "attendance.xlsx");
+});
 
 // ==========================================
 // INITIAL LOAD
