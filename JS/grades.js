@@ -1,23 +1,14 @@
 const API_URL = "http://localhost:3000";
 
 const gradeForm = document.getElementById("gradeForm");
-
 const gradeStudent = document.getElementById("gradeStudent");
-
 const gradeSubject = document.getElementById("gradeSubject");
-
 const gradeMarks = document.getElementById("gradeMarks");
-
 const gradeSummaryList = document.getElementById("gradeSummaryList");
-
 const searchGrade = document.getElementById("searchGrade");
-
 const filterGradeStudent = document.getElementById("filterGradeStudent");
-
 const filterGradeSubject = document.getElementById("filterGradeSubject");
-
 const filterGradeRange = document.getElementById("filterGradeRange");
-
 const clearGradeFilters = document.getElementById("clearGradeFilters");
 
 let students = [];
