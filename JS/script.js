@@ -11,6 +11,14 @@ const excellentStudents = document.getElementById("excellentStudents");
 const averageStudents = document.getElementById("averageStudents");
 const weakStudents = document.getElementById("weakStudents");
 const leaderboardList = document.getElementById("leaderboardList");
+const leaderboardPagination = document.getElementById("leaderboardPagination");
+const warningPagination = document.getElementById("warningPagination");
+
+let leaderboardPage = 1;
+
+/* "Students Needing Attention" shows 15 per page */
+const WARNING_PAGE_SIZE = 15;
+let warningPage = 1;
 
 let students = [];
 let attendance = [];
@@ -143,8 +151,8 @@ function displayDashboardStatistics() {
     }
 
     if (
-      (studentAttendance.length > 0 && attendancePercent < 75) ||
-      (studentGrades.length > 0 && marks < 50)
+      (studentAttendance.length > 0 && attendancePercent <= 65) ||
+      (studentGrades.length > 0 && marks < 45)
     ) {
       riskCount++;
     }
@@ -215,11 +223,11 @@ function displayWarnings() {
 
     const reasons = [];
 
-    if (studentAttendance.length > 0 && attendancePercent < 75) {
+    if (studentAttendance.length > 0 && attendancePercent <= 65) {
       reasons.push(`Attendance ${attendancePercent.toFixed(1)}%`);
     }
 
-    if (studentGrades.length > 0 && average < 50) {
+    if (studentGrades.length > 0 && average < 45) {
       reasons.push(`Average marks ${average.toFixed(1)}%`);
     }
 
@@ -230,10 +238,15 @@ function displayWarnings() {
 
   if (warnings.length === 0) {
     warningStudents.textContent = "No students currently need attention.";
+    renderPagination(warningPagination, getPageItems([], 1), () => {});
     return;
   }
 
-  warnings.forEach(({ student, reasons }) => {
+  const pageInfo = getPageItems(warnings, warningPage, WARNING_PAGE_SIZE);
+
+  warningPage = pageInfo.page;
+
+  pageInfo.items.forEach(({ student, reasons }) => {
     const item = document.createElement("div");
     item.className = "dashboard-warning";
 
@@ -251,6 +264,17 @@ function displayWarnings() {
     item.append(name, reason, link);
     warningStudents.appendChild(item);
   });
+
+  renderPagination(
+    warningPagination,
+    pageInfo,
+    (page) => {
+      warningPage = page;
+
+      displayWarnings();
+    },
+    WARNING_PAGE_SIZE,
+  );
 }
 
 /* Leaderboard */
@@ -296,15 +320,22 @@ function displayLeaderboard() {
 
   if (leaderboard.length === 0) {
     leaderboardList.textContent = "No students available.";
+    renderPagination(leaderboardPagination, getPageItems([], 1), () => {});
     return;
   }
 
-  leaderboard.forEach((item, index) => {
+  /* Only 50 rows are shown at a time */
+
+  const pageInfo = getPageItems(leaderboard, leaderboardPage);
+
+  leaderboardPage = pageInfo.page;
+
+  pageInfo.items.forEach((item, index) => {
     const row = document.createElement("div");
     row.className = "leaderboard-row";
 
     const rank = document.createElement("span");
-    rank.textContent = index + 1;
+    rank.textContent = pageInfo.startIndex + index + 1;
 
     const nameCell = document.createElement("span");
     const link = document.createElement("a");
@@ -337,6 +368,12 @@ function displayLeaderboard() {
     );
 
     leaderboardList.appendChild(row);
+  });
+
+  renderPagination(leaderboardPagination, pageInfo, (page) => {
+    leaderboardPage = page;
+
+    displayLeaderboard();
   });
 }
 

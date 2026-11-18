@@ -4,6 +4,8 @@ const studentForm = document.getElementById("studentForm");
 
 const studentList = document.getElementById("studentList");
 
+const studentPagination = document.getElementById("studentPagination");
+
 const searchStudent = document.getElementById("searchStudent");
 
 const filterClass = document.getElementById("filterClass");
@@ -17,6 +19,8 @@ const clearStudentFilters = document.getElementById("clearStudentFilters");
 let students = [];
 
 let editingId = null;
+
+let currentPage = 1;
 
 /* Load Students from Backend */
 
@@ -92,10 +96,18 @@ function displayStudents(studentData = students) {
             </p>
         `;
 
+    renderPagination(studentPagination, getPageItems([], 1), () => {});
+
     return;
   }
 
-  studentData.forEach((student) => {
+  /* Only 50 rows are shown at a time */
+
+  const pageInfo = getPageItems(studentData, currentPage);
+
+  currentPage = pageInfo.page;
+
+  pageInfo.items.forEach((student) => {
     const row = document.createElement("div");
 
     row.className = "student-row";
@@ -159,6 +171,12 @@ function displayStudents(studentData = students) {
 
     studentList.appendChild(row);
   });
+
+  renderPagination(studentPagination, pageInfo, (page) => {
+    currentPage = page;
+
+    displayStudents(studentData);
+  });
 }
 
 /* Apply Filters */
@@ -210,10 +228,7 @@ studentForm.addEventListener("submit", async function (event) {
     phone: document.getElementById("studentPhone").value.trim(),
   };
 
-  /*
-   * Backend expects "studentClass"
-   * in POST/PUT request body.
-   */
+
 
   try {
     let response;
@@ -247,15 +262,15 @@ studentForm.addEventListener("submit", async function (event) {
     const result = await response.json();
 
     if (!response.ok) {
-      alert(result.message || "Operation failed");
+      showToast(result.message || "Operation failed", "error");
 
       return;
     }
 
     if (editingId === null) {
-      alert("Student added successfully.");
+      showToast("Student added successfully.", "success");
     } else {
-      alert("Student updated successfully.");
+      showToast("Student updated successfully.", "success");
     }
 
     editingId = null;
@@ -266,7 +281,7 @@ studentForm.addEventListener("submit", async function (event) {
   } catch (error) {
     console.error(error);
 
-    alert("Unable to connect to the server.");
+    showToast("Unable to connect to the server.", "error");
   }
 });
 
@@ -299,8 +314,10 @@ function editStudent(id) {
 /* Delete Student */
 
 async function deleteStudent(id) {
-  const confirmDelete = confirm(
-    "Are you sure you want to delete this student?",
+  const confirmDelete = await confirmPopup(
+    "This action cannot be undone. The student's record will be permanently deleted.",
+    "Delete student?",
+    "Delete student"
   );
 
   if (!confirmDelete) {
@@ -315,21 +332,14 @@ async function deleteStudent(id) {
     const result = await response.json();
 
     if (!response.ok) {
-      alert(result.message || "Unable to delete student");
+      showToast(result.message || "Unable to delete student", "error");
 
       return;
     }
 
-    alert("Student deleted successfully.");
+    showToast("Student deleted successfully.", "success");
 
-    /*
-     * Attendance and grades are no
-     * longer stored in localStorage.
-     *
-     * MySQL handles their deletion
-     * automatically through
-     * ON DELETE CASCADE.
-     */
+   
 
     if (Number(editingId) === Number(id)) {
       editingId = null;
@@ -341,25 +351,33 @@ async function deleteStudent(id) {
   } catch (error) {
     console.error(error);
 
-    alert("Unable to connect to the server.");
+    showToast("Unable to connect to the server.", "error");
   }
+}
+
+/* Any filter change goes back to the first page */
+
+function onFilterChange() {
+  currentPage = 1;
+
+  applyFilters();
 }
 
 /* Search */
 
-searchStudent.addEventListener("input", applyFilters);
+searchStudent.addEventListener("input", onFilterChange);
 
 /* Class Filter */
 
-filterClass.addEventListener("change", applyFilters);
+filterClass.addEventListener("change", onFilterChange);
 
 /* Section Filter */
 
-filterSection.addEventListener("change", applyFilters);
+filterSection.addEventListener("change", onFilterChange);
 
 /* Gender Filter */
 
-filterGender.addEventListener("change", applyFilters);
+filterGender.addEventListener("change", onFilterChange);
 
 /* Clear Filters */
 
@@ -372,6 +390,8 @@ clearStudentFilters.addEventListener("click", function () {
 
   filterGender.value = "";
 
+  currentPage = 1;
+
   applyFilters();
 });
 
@@ -381,7 +401,7 @@ const exportStudents = document.getElementById("exportStudents");
 
 exportStudents.addEventListener("click", function () {
   if (students.length === 0) {
-    alert("No students available to export.");
+    showToast("No students available to export.", "warning");
 
     return;
   }

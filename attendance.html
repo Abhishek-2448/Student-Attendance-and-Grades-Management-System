@@ -42,7 +42,11 @@
             <div class="form-group">
               <label for="attendanceStudent"> Student </label>
 
-              <select id="attendanceStudent" required>
+              <div class="searchable-select" id="attendanceStudentSearchBox">
+                <input type="text" id="attendanceStudentSearch" placeholder="Search student by name" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="attendanceStudentOptions" aria-autocomplete="list" />
+                <ul class="searchable-options" id="attendanceStudentOptions" role="listbox" hidden></ul>
+              </div>
+              <select id="attendanceStudent" class="searchable-native-select" aria-hidden="true" tabindex="-1">
                 <option value="">Select Student</option>
               </select>
             </div>
@@ -87,7 +91,11 @@
               />
             </div>
 
-            <select id="filterAttendanceStudent">
+            <div class="searchable-select filter-searchable-select" id="filterAttendanceStudentSearchBox">
+              <input type="text" id="filterAttendanceStudentSearch" placeholder="Search student..." autocomplete="off" role="combobox" aria-expanded="false" aria-controls="filterAttendanceStudentOptions" aria-autocomplete="list" />
+              <ul class="searchable-options" id="filterAttendanceStudentOptions" role="listbox" hidden></ul>
+            </div>
+            <select id="filterAttendanceStudent" class="searchable-native-select" aria-hidden="true" tabindex="-1">
               <option value="">All Students</option>
             </select>
 
@@ -123,6 +131,8 @@
 
             <div id="attendanceSummaryList"></div>
           </div>
+
+          <div class="pagination" id="attendancePagination" hidden></div>
         </div>
 
         <!-- Heatmap -->
@@ -133,12 +143,53 @@
           <p>Daily attendance pattern for the selected student.</p>
 
           <div class="heatmap-controls">
-            <select id="heatmapStudent">
-              <option value="">Select Student</option>
-            </select>
+            <label for="heatmapSearch" class="heatmap-label">Student</label>
+
+            <div class="heatmap-search" id="heatmapSearchBox">
+              <input
+                type="text"
+                id="heatmapSearch"
+                placeholder="Search student by name, ID or class..."
+                autocomplete="off"
+                role="combobox"
+                aria-expanded="false"
+                aria-controls="heatmapOptions"
+                aria-autocomplete="list"
+              />
+
+              <button
+                type="button"
+                id="heatmapClear"
+                class="heatmap-clear"
+                aria-label="Clear selected student"
+                hidden
+              >
+                &times;
+              </button>
+
+              <ul
+                class="heatmap-options"
+                id="heatmapOptions"
+                role="listbox"
+                hidden
+              ></ul>
+            </div>
+
+            <!-- Holds the selected student's ID -->
+            <input type="hidden" id="heatmapStudent" value="" />
+          </div>
+
+          <div id="heatmapSummary" class="heatmap-summary" hidden></div>
+
+          <div class="heatmap-legend">
+            <span><i class="legend-box heatmap-present"></i> Present</span>
+            <span><i class="legend-box heatmap-absent"></i> Absent</span>
+            <span><i class="legend-box heatmap-late"></i> Late</span>
           </div>
 
           <div id="attendanceHeatmap"></div>
+
+          <div class="pagination" id="heatmapPagination" hidden></div>
         </div>
       </section>
     </main>
@@ -148,8 +199,6 @@
         window.location.href = "login.html";
       }
     </script>
-
-    <script src="js/attendance.js"></script>
 
     <script>
       document.getElementById("userRole").textContent =
@@ -164,7 +213,9 @@
       }
     </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="js/searchable-dropdown.js"></script>
+    <script src="js/pagination.js"></script>
     <script src="js/attendance.js"></script>
-    
+      <script src="js/popups.js"></script>
   </body>
 </html>

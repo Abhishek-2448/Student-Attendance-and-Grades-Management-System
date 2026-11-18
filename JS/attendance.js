@@ -2,23 +2,51 @@ const API_URL = "http://localhost:3000";
 
 const attendanceForm = document.getElementById("attendanceForm");
 const attendanceStudent = document.getElementById("attendanceStudent");
+const attendanceStudentPicker = new SearchableDropdown({
+    input: document.getElementById("attendanceStudentSearch"),
+    select: attendanceStudent,
+    list: document.getElementById("attendanceStudentOptions")
+});
 const attendanceDate = document.getElementById("attendanceDate");
 const attendanceStatus = document.getElementById("attendanceStatus");
 const attendanceSummaryList = document.getElementById("attendanceSummaryList");
 
 const searchAttendance = document.getElementById("searchAttendance");
 const filterAttendanceStudent = document.getElementById("filterAttendanceStudent");
+const filterAttendanceStudentPicker = new SearchableDropdown({
+    input: document.getElementById("filterAttendanceStudentSearch"),
+    select: filterAttendanceStudent,
+    list: document.getElementById("filterAttendanceStudentOptions"),
+    allowAll: true
+});
 const filterAttendanceDate = document.getElementById("filterAttendanceDate");
 const filterAttendanceStatus = document.getElementById("filterAttendanceStatus");
 const clearAttendanceFilters = document.getElementById("clearAttendanceFilters");
 
-const heatmapStudent = document.getElementById("heatmapStudent");
+const attendancePagination = document.getElementById("attendancePagination");
+
+const heatmapSearchBox = document.getElementById("heatmapSearchBox");
+const heatmapSearch = document.getElementById("heatmapSearch");
+const heatmapStudent = document.getElementById("heatmapStudent"); 
+const heatmapOptions = document.getElementById("heatmapOptions");
+const heatmapClear = document.getElementById("heatmapClear");
+const heatmapSummary = document.getElementById("heatmapSummary");
+const heatmapPagination = document.getElementById("heatmapPagination");
 const attendanceHeatmap = document.getElementById("attendanceHeatmap");
 const exportAttendance = document.getElementById("exportAttendance");
+
+document.getElementById("attendanceForm").addEventListener("reset", () => {
+  document.getElementById("attendanceStudentSearch").value = "";
+});
 
 let students = [];
 let attendance = [];
 let editingAttendanceId = null;
+
+let attendancePage = 1;
+let heatmapPage = 1;
+let heatmapMatches = [];
+let heatmapActiveIndex = -1;
 
 function normalizeDate(date) {
     if (!date) return "";
@@ -67,7 +95,13 @@ async function apiRequest(url, options = {}) {
 }
 
 function showMessage(message) {
-    alert(message);
+    const text = String(message).toLowerCase();
+    const type = text.includes("successfully") || text.includes("marked successfully")
+        ? "success"
+        : text.includes("please select") || text.includes("no attendance") || text.includes("not loaded")
+            ? "warning"
+            : "error";
+    showToast(message, type);
 }
 
 function getStudentName(studentId) {
@@ -79,24 +113,8 @@ function getStudentName(studentId) {
 }
 
 function populateStudentDropdowns() {
-    attendanceStudent.innerHTML = '<option value="">Select Student</option>';
-    filterAttendanceStudent.innerHTML = '<option value="">All Students</option>';
-    heatmapStudent.innerHTML = '<option value="">Select Student</option>';
-
-    students.forEach(student => {
-        const options = [
-            attendanceStudent,
-            filterAttendanceStudent,
-            heatmapStudent
-        ];
-
-        options.forEach((dropdown, index) => {
-            const option = document.createElement("option");
-            option.value = student.id;
-            option.textContent = student.name;
-            dropdown.appendChild(option);
-        });
-    });
+    attendanceStudentPicker.setItems(students);
+    filterAttendanceStudentPicker.setItems(students);
 }
 
 async function loadData() {
@@ -116,6 +134,8 @@ async function loadData() {
 
         populateStudentDropdowns();
         applyAttendanceFilters();
+
+        syncHeatmapSelection();
 
         if (heatmapStudent.value) {
             displayHeatmap(Number(heatmapStudent.value));
@@ -162,10 +182,18 @@ function displayAttendanceSummary(studentData = students, records = attendance) 
         attendanceSummaryList.innerHTML = `
             <p class="empty-message">No students found.</p>
         `;
+
+        renderPagination(attendancePagination, getPageItems([], 1), () => {});
+
         return;
     }
 
-    studentData.forEach(student => {
+    /* Only 50 rows are shown at a time */
+    const pageInfo = getPageItems(studentData, attendancePage);
+
+    attendancePage = pageInfo.page;
+
+    pageInfo.items.forEach(student => {
         const data = getAttendanceData(student.id, records);
         const row = document.createElement("div");
 
@@ -205,6 +233,12 @@ function displayAttendanceSummary(studentData = students, records = attendance) 
         ].forEach(element => row.appendChild(element));
 
         attendanceSummaryList.appendChild(row);
+    });
+
+    renderPagination(attendancePagination, pageInfo, page => {
+        attendancePage = page;
+
+        displayAttendanceSummary(studentData, records);
     });
 }
 
@@ -327,30 +361,263 @@ async function markAttendance(event) {
     }
 }
 
-function displayHeatmap(studentId) {
+/* ==========================================
+   HEATMAP - SEARCHABLE STUDENT PICKER
+   ========================================== */
+
+function getSelectedHeatmapStudent() {
+    const id = Number(heatmapStudent.value);
+
+    if (!id) return null;
+
+    return students.find(student => Number(student.id) === id) || null;
+}
+
+function updateHeatmapClearButton() {
+    heatmapClear.hidden = !heatmapStudent.value;
+}
+
+/* Keep the picker in step with freshly loaded data */
+function syncHeatmapSelection() {
+    const selected = getSelectedHeatmapStudent();
+
+    if (selected) {
+        heatmapSearch.value = selected.name;
+    } else {
+        heatmapStudent.value = "";
+        heatmapSearch.value = "";
+    }
+
+    updateHeatmapClearButton();
+}
+
+function openHeatmapOptions() {
+    heatmapOptions.hidden = false;
+    heatmapSearch.setAttribute("aria-expanded", "true");
+}
+
+function closeHeatmapOptions() {
+    heatmapOptions.hidden = true;
+    heatmapSearch.setAttribute("aria-expanded", "false");
+    heatmapActiveIndex = -1;
+
+    /* Put the selected name back if the user typed something else */
+    const selected = getSelectedHeatmapStudent();
+    heatmapSearch.value = selected ? selected.name : "";
+}
+
+function setHeatmapActiveOption(index) {
+    const items = heatmapOptions.querySelectorAll(".heatmap-option");
+
+    items.forEach(item => item.classList.remove("active"));
+
+    heatmapActiveIndex = index;
+
+    if (index >= 0 && items[index]) {
+        items[index].classList.add("active");
+        items[index].scrollIntoView({ block: "nearest" });
+    }
+}
+
+function renderHeatmapOptions() {
+    const rawQuery = heatmapSearch.value;
+    const query = rawQuery.toLowerCase().trim();
+    const selected = getSelectedHeatmapStudent();
+
+    /* While the box still shows the chosen name, list everyone */
+    const showAll = !query || (selected && rawQuery === selected.name);
+
+    const matches = showAll
+        ? students
+        : students.filter(student =>
+              [
+                  student.name,
+                  student.id,
+                  student.studentClass,
+                  student.section
+              ].some(value =>
+                  String(value ?? "").toLowerCase().includes(query)
+              )
+          );
+
+    heatmapMatches = matches.slice(0, PAGE_SIZE);
+    heatmapOptions.innerHTML = "";
+
+    if (matches.length === 0) {
+        const empty = document.createElement("li");
+        empty.className = "heatmap-option-empty";
+        empty.textContent = "No students found";
+        heatmapOptions.appendChild(empty);
+        heatmapActiveIndex = -1;
+        openHeatmapOptions();
+        return;
+    }
+
+    heatmapMatches.forEach(student => {
+        const item = document.createElement("li");
+        item.className = "heatmap-option";
+        item.setAttribute("role", "option");
+
+        if (selected && Number(selected.id) === Number(student.id)) {
+            item.classList.add("selected");
+            item.setAttribute("aria-selected", "true");
+        }
+
+        const name = document.createElement("span");
+        name.className = "heatmap-option-name";
+        name.textContent = student.name;
+
+        const meta = document.createElement("span");
+        meta.className = "heatmap-option-meta";
+        meta.textContent =
+            `ID ${student.id}` +
+            (student.studentClass
+                ? ` | Class ${student.studentClass}${student.section ? "-" + student.section : ""}`
+                : "");
+
+        item.append(name, meta);
+
+        /* mousedown fires before the input loses focus */
+        item.addEventListener("mousedown", event => {
+            event.preventDefault();
+            selectHeatmapStudent(student);
+        });
+
+        heatmapOptions.appendChild(item);
+    });
+
+    if (matches.length > heatmapMatches.length) {
+        const hint = document.createElement("li");
+        hint.className = "heatmap-option-hint";
+        hint.textContent =
+            `Showing first ${heatmapMatches.length} of ${matches.length} - keep typing to narrow the list`;
+        heatmapOptions.appendChild(hint);
+    }
+
+    const selectedIndex = heatmapMatches.findIndex(
+        student => selected && Number(student.id) === Number(selected.id)
+    );
+
+    openHeatmapOptions();
+    setHeatmapActiveIndexSafe(selectedIndex >= 0 ? selectedIndex : 0);
+}
+
+function setHeatmapActiveIndexSafe(index) {
+    if (heatmapMatches.length === 0) return;
+
+    const last = heatmapMatches.length - 1;
+
+    setHeatmapActiveOption(Math.min(Math.max(index, 0), last));
+}
+
+function selectHeatmapStudent(student) {
+    heatmapStudent.value = student.id;
+    heatmapSearch.value = student.name;
+    heatmapPage = 1;
+
+    heatmapOptions.hidden = true;
+    heatmapSearch.setAttribute("aria-expanded", "false");
+    heatmapActiveIndex = -1;
+
+    updateHeatmapClearButton();
+    displayHeatmap(Number(student.id));
+}
+
+function clearHeatmapSelection() {
+    heatmapStudent.value = "";
+    heatmapSearch.value = "";
+    heatmapPage = 1;
+
+    updateHeatmapClearButton();
+    displayHeatmap();
+
+    heatmapSearch.focus();
+}
+
+/* ==========================================
+   HEATMAP - DISPLAY
+   ========================================== */
+
+function showHeatmapMessage(message) {
     attendanceHeatmap.innerHTML = "";
 
+    const text = document.createElement("p");
+    text.className = "heatmap-empty";
+    text.textContent = message;
+
+    attendanceHeatmap.appendChild(text);
+}
+
+function displayHeatmapSummary(student, studentId) {
+    const data = getAttendanceData(studentId);
+
+    heatmapSummary.innerHTML = "";
+
+    const name = document.createElement("strong");
+    name.className = "heatmap-summary-name";
+    name.textContent = student ? student.name : "Student";
+
+    const chips = document.createElement("div");
+    chips.className = "heatmap-summary-chips";
+
+    const items = [
+        ["Present", data.present, "chip-present"],
+        ["Absent", data.absent, "chip-absent"]
+    ];
+
+    if (data.late > 0) {
+        items.push(["Late", data.late, "chip-late"]);
+    }
+
+    items.push(["Attendance", `${data.percentage.toFixed(1)}%`, "chip-rate"]);
+
+    items.forEach(([label, value, className]) => {
+        const chip = document.createElement("span");
+        chip.className = `heatmap-chip ${className}`;
+        chip.textContent = `${label}: ${value}`;
+        chips.appendChild(chip);
+    });
+
+    heatmapSummary.append(name, chips);
+    heatmapSummary.hidden = false;
+}
+
+function displayHeatmap(studentId) {
+    attendanceHeatmap.innerHTML = "";
+    heatmapSummary.hidden = true;
+    heatmapSummary.innerHTML = "";
+
     if (!studentId) {
-        attendanceHeatmap.innerHTML = `
-            <p>Select a student to view the attendance heatmap.</p>
-        `;
+        showHeatmapMessage("Search and select a student to view the attendance heatmap.");
+        renderPagination(heatmapPagination, getPageItems([], 1), () => {});
         return;
     }
 
+    const student = students.find(
+        item => Number(item.id) === Number(studentId)
+    );
+
+    /* Newest day first, 50 days per page */
     const studentAttendance = attendance
         .filter(record => Number(record.studentId) === Number(studentId))
-        .sort((a, b) => a.date.localeCompare(b.date));
+        .sort((a, b) => b.date.localeCompare(a.date));
 
     if (studentAttendance.length === 0) {
-        attendanceHeatmap.innerHTML = `
-            <p>No attendance records available.</p>
-        `;
+        showHeatmapMessage("No attendance records available.");
+        renderPagination(heatmapPagination, getPageItems([], 1), () => {});
         return;
     }
 
-    studentAttendance.forEach(record => {
+    displayHeatmapSummary(student, studentId);
+
+    const pageInfo = getPageItems(studentAttendance, heatmapPage);
+
+    heatmapPage = pageInfo.page;
+
+    pageInfo.items.forEach(record => {
         const day = document.createElement("div");
         day.className = "heatmap-day";
+        day.title = `${record.date} - ${record.status}`;
 
         if (record.status === "Present") {
             day.classList.add("heatmap-present");
@@ -363,19 +630,39 @@ function displayHeatmap(studentId) {
         const date = document.createElement("strong");
         date.textContent = record.date;
 
+        const weekday = document.createElement("small");
+        weekday.textContent = new Date(`${record.date}T00:00:00`)
+            .toLocaleDateString(undefined, { weekday: "short" });
+
         const status = document.createElement("span");
         status.textContent = record.status;
 
-        day.append(date, status);
+        day.append(date, weekday, status);
         attendanceHeatmap.appendChild(day);
+    });
+
+    renderPagination(heatmapPagination, pageInfo, page => {
+        heatmapPage = page;
+
+        displayHeatmap(studentId);
     });
 }
 
 function clearFilters() {
     searchAttendance.value = "";
     filterAttendanceStudent.value = "";
+    document.getElementById("filterAttendanceStudentSearch").value = "";
     filterAttendanceDate.value = "";
     filterAttendanceStatus.value = "";
+
+    attendancePage = 1;
+
+    applyAttendanceFilters();
+}
+
+/* Any filter change goes back to the first page */
+function onAttendanceFilterChange() {
+    attendancePage = 1;
 
     applyAttendanceFilters();
 }
@@ -407,15 +694,52 @@ function exportAttendanceToExcel() {
 
 attendanceForm.addEventListener("submit", markAttendance);
 
-searchAttendance.addEventListener("input", applyAttendanceFilters);
-filterAttendanceStudent.addEventListener("change", applyAttendanceFilters);
-filterAttendanceDate.addEventListener("change", applyAttendanceFilters);
-filterAttendanceStatus.addEventListener("change", applyAttendanceFilters);
+searchAttendance.addEventListener("input", onAttendanceFilterChange);
+filterAttendanceStudent.addEventListener("change", onAttendanceFilterChange);
+filterAttendanceDate.addEventListener("change", onAttendanceFilterChange);
+filterAttendanceStatus.addEventListener("change", onAttendanceFilterChange);
 
 clearAttendanceFilters.addEventListener("click", clearFilters);
 
-heatmapStudent.addEventListener("change", function () {
-    displayHeatmap(Number(this.value));
+/* Heatmap search picker */
+
+heatmapSearch.addEventListener("focus", function () {
+    this.select();
+    renderHeatmapOptions();
+});
+
+heatmapSearch.addEventListener("input", renderHeatmapOptions);
+
+heatmapSearch.addEventListener("keydown", function (event) {
+    if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+        event.preventDefault();
+
+        if (heatmapOptions.hidden) {
+            renderHeatmapOptions();
+            return;
+        }
+
+        const step = event.key === "ArrowDown" ? 1 : -1;
+        setHeatmapActiveIndexSafe(heatmapActiveIndex + step);
+    } else if (event.key === "Enter") {
+        if (!heatmapOptions.hidden && heatmapMatches[heatmapActiveIndex]) {
+            event.preventDefault();
+            selectHeatmapStudent(heatmapMatches[heatmapActiveIndex]);
+        }
+    } else if (event.key === "Escape") {
+        closeHeatmapOptions();
+        heatmapSearch.blur();
+    }
+});
+
+heatmapClear.addEventListener("click", clearHeatmapSelection);
+
+/* Close when the box loses focus (Tab or click elsewhere) */
+heatmapSearch.addEventListener("blur", closeHeatmapOptions);
+
+/* Keep focus in the box while using the list (e.g. dragging its scrollbar) */
+heatmapOptions.addEventListener("mousedown", function (event) {
+    event.preventDefault();
 });
 
 exportAttendance.addEventListener("click", exportAttendanceToExcel);

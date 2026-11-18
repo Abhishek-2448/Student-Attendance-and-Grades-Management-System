@@ -2,20 +2,38 @@ const API_URL = "http://localhost:3000";
 
 const gradeForm = document.getElementById("gradeForm");
 const gradeStudent = document.getElementById("gradeStudent");
+const gradeStudentPicker = new SearchableDropdown({
+  input: document.getElementById("gradeStudentSearch"),
+  select: gradeStudent,
+  list: document.getElementById("gradeStudentOptions")
+});
 const gradeSubject = document.getElementById("gradeSubject");
 const gradeMarks = document.getElementById("gradeMarks");
 const gradeSummaryList = document.getElementById("gradeSummaryList");
+const gradePagination = document.getElementById("gradePagination");
 const searchGrade = document.getElementById("searchGrade");
 const filterGradeStudent = document.getElementById("filterGradeStudent");
+const filterGradeStudentPicker = new SearchableDropdown({
+  input: document.getElementById("filterGradeStudentSearch"),
+  select: filterGradeStudent,
+  list: document.getElementById("filterGradeStudentOptions"),
+  allowAll: true
+});
 const filterGradeSubject = document.getElementById("filterGradeSubject");
 const filterGradeRange = document.getElementById("filterGradeRange");
 const clearGradeFilters = document.getElementById("clearGradeFilters");
+
+document.getElementById("gradeForm").addEventListener("reset", () => {
+  document.getElementById("gradeStudentSearch").value = "";
+});
 
 let students = [];
 
 let grades = [];
 
 let subjects = [];
+
+let gradePage = 1;
 
 // ==========================================
 // LOAD DATA FROM BACKEND
@@ -74,35 +92,8 @@ async function loadData() {
 // ==========================================
 
 function loadStudents() {
-  gradeStudent.innerHTML = `
-        <option value="">
-            Select Student
-        </option>
-    `;
-
-  filterGradeStudent.innerHTML = `
-        <option value="">
-            All Students
-        </option>
-    `;
-
-  students.forEach((student) => {
-    const option = document.createElement("option");
-
-    option.value = student.id;
-
-    option.textContent = student.name;
-
-    gradeStudent.appendChild(option);
-
-    const filterOption = document.createElement("option");
-
-    filterOption.value = student.id;
-
-    filterOption.textContent = student.name;
-
-    filterGradeStudent.appendChild(filterOption);
-  });
+  gradeStudentPicker.setItems(students);
+  filterGradeStudentPicker.setItems(students);
 }
 
 // ==========================================
@@ -239,10 +230,18 @@ function displayGradeSummary(studentData = students, records = grades) {
             </p>
         `;
 
+    renderPagination(gradePagination, getPageItems([], 1), () => {});
+
     return;
   }
 
-  studentData.forEach((student) => {
+  /* Only 50 rows are shown at a time */
+
+  const pageInfo = getPageItems(studentData, gradePage);
+
+  gradePage = pageInfo.page;
+
+  pageInfo.items.forEach((student) => {
     const studentGrades = getStudentGrades(student.id, records);
 
     const subjectCount = studentGrades.length;
@@ -292,6 +291,12 @@ function displayGradeSummary(studentData = students, records = grades) {
             `;
 
     gradeSummaryList.appendChild(row);
+  });
+
+  renderPagination(gradePagination, pageInfo, (page) => {
+    gradePage = page;
+
+    displayGradeSummary(studentData, records);
   });
 }
 
@@ -443,15 +448,15 @@ gradeForm.addEventListener("submit", async function (event) {
     const result = await response.json();
 
     if (!response.ok) {
-      alert(result.message || "Unable to save grade.");
+      showToast(result.message || "Unable to save grade.", "error");
 
       return;
     }
 
     if (existingGrade) {
-      alert("Grade updated successfully.");
+      showToast("Grade updated successfully.", "success");
     } else {
-      alert("Grade added successfully.");
+      showToast("Grade added successfully.", "success");
     }
 
     /*
@@ -465,7 +470,7 @@ gradeForm.addEventListener("submit", async function (event) {
   } catch (error) {
     console.error(error);
 
-    alert("Unable to connect to the server.");
+    showToast("Unable to connect to the server.", "error");
   }
 });
 
@@ -473,25 +478,33 @@ gradeForm.addEventListener("submit", async function (event) {
 // SEARCH
 // ==========================================
 
-searchGrade.addEventListener("input", applyGradeFilters);
+/* Any filter change goes back to the first page */
+
+function onGradeFilterChange() {
+  gradePage = 1;
+
+  applyGradeFilters();
+}
+
+searchGrade.addEventListener("input", onGradeFilterChange);
 
 // ==========================================
 // STUDENT FILTER
 // ==========================================
 
-filterGradeStudent.addEventListener("change", applyGradeFilters);
+filterGradeStudent.addEventListener("change", onGradeFilterChange);
 
 // ==========================================
 // SUBJECT FILTER
 // ==========================================
 
-filterGradeSubject.addEventListener("change", applyGradeFilters);
+filterGradeSubject.addEventListener("change", onGradeFilterChange);
 
 // ==========================================
 // MARKS FILTER
 // ==========================================
 
-filterGradeRange.addEventListener("change", applyGradeFilters);
+filterGradeRange.addEventListener("change", onGradeFilterChange);
 
 // ==========================================
 // CLEAR FILTERS
@@ -501,10 +514,13 @@ clearGradeFilters.addEventListener("click", function () {
   searchGrade.value = "";
 
   filterGradeStudent.value = "";
+  document.getElementById("filterGradeStudentSearch").value = "";
 
   filterGradeSubject.value = "";
 
   filterGradeRange.value = "";
+
+  gradePage = 1;
 
   applyGradeFilters();
 });

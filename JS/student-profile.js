@@ -9,6 +9,8 @@ let grades = [];
 
 let subjects = [];
 
+let attendanceHistoryPage = 1;
+
 async function loadStudentProfileData() {
   if (!studentId) {
     showStudentNotFound();
@@ -199,17 +201,32 @@ function loadAttendance() {
   document.getElementById("attendancePercentage").textContent =
     `${percentage.toFixed(1)}%`;
 
+  studentAttendance.sort((a, b) => b.date.localeCompare(a.date));
+
+  renderAttendanceHistory();
+}
+
+/* Attendance history (50 rows per page) */
+
+function renderAttendanceHistory() {
+  const studentAttendance = getStudentAttendance();
+
   const history = document.getElementById("attendanceHistory");
+  const pagination = document.getElementById("attendancePagination");
+
   history.innerHTML = "";
 
   if (studentAttendance.length === 0) {
     history.innerHTML = "<p>No attendance records available.</p>";
+    renderPagination(pagination, getPageItems([], 1), () => {});
     return;
   }
 
-  studentAttendance.sort((a, b) => b.date.localeCompare(a.date));
+  const pageInfo = getPageItems(studentAttendance, attendanceHistoryPage);
 
-  studentAttendance.forEach((record) => {
+  attendanceHistoryPage = pageInfo.page;
+
+  pageInfo.items.forEach((record) => {
     const row = document.createElement("div");
     row.className = "profile-record";
 
@@ -221,6 +238,12 @@ function loadAttendance() {
 
     row.append(date, status);
     history.appendChild(row);
+  });
+
+  renderPagination(pagination, pageInfo, (page) => {
+    attendanceHistoryPage = page;
+
+    renderAttendanceHistory();
   });
 }
 
@@ -339,13 +362,13 @@ function generateRecommendations() {
 
     const percentage = (present / studentAttendance.length) * 100;
 
-    if (percentage < 75) {
+    if (percentage <= 65) {
       recommendations.push("Improve attendance and attend classes regularly.");
     }
   }
 
   studentGrades.forEach((record) => {
-    if (record.marks < 50) {
+    if (record.marks < 45) {
       recommendations.push(`Spend more study time on ${record.subject}.`);
     } else if (record.marks < 70) {
       recommendations.push(`Practice more questions in ${record.subject}.`);
@@ -383,13 +406,13 @@ function generateEarlyWarning() {
 
     const percentage = (present / studentAttendance.length) * 100;
 
-    if (percentage < 75) {
+    if (percentage <= 65) {
       warnings.push(`Low attendance: ${percentage.toFixed(1)}%`);
     }
   }
 
   studentGrades.forEach((record) => {
-    if (record.marks < 50) {
+    if (record.marks < 45) {
       warnings.push(`Low marks in ${record.subject}: ${record.marks}`);
     }
   });

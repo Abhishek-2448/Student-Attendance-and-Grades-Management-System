@@ -42,7 +42,11 @@
             <div class="form-group">
               <label for="gradeStudent"> Student </label>
 
-              <select id="gradeStudent" required>
+              <div class="searchable-select" id="gradeStudentSearchBox">
+                <input type="text" id="gradeStudentSearch" placeholder="Search student by name" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="gradeStudentOptions" aria-autocomplete="list" />
+                <ul class="searchable-options" id="gradeStudentOptions" role="listbox" hidden></ul>
+              </div>
+              <select id="gradeStudent" class="searchable-native-select" aria-hidden="true" tabindex="-1">
                 <option value="">Select Student</option>
               </select>
             </div>
@@ -93,7 +97,11 @@
               />
             </div>
 
-            <select id="filterGradeStudent">
+            <div class="searchable-select filter-searchable-select" id="filterGradeStudentSearchBox">
+              <input type="text" id="filterGradeStudentSearch" placeholder="Search student..." autocomplete="off" role="combobox" aria-expanded="false" aria-controls="filterGradeStudentOptions" aria-autocomplete="list" />
+              <ul class="searchable-options" id="filterGradeStudentOptions" role="listbox" hidden></ul>
+            </div>
+            <select id="filterGradeStudent" class="searchable-native-select" aria-hidden="true" tabindex="-1">
               <option value="">All Students</option>
             </select>
 
@@ -145,6 +153,8 @@
 
             <div id="gradeSummaryList"></div>
           </div>
+
+          <div class="pagination" id="gradePagination" hidden></div>
         </div>
       </section>
     </main>
@@ -154,8 +164,6 @@
         window.location.href = "login.html";
       }
     </script>
-
-    <script src="js/grades.js"></script>
 
     <script>
       document.getElementById("userRole").textContent =
@@ -170,6 +178,9 @@
       }
     </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="js/searchable-dropdown.js"></script>
+    <script src="js/pagination.js"></script>
     <script src="js/grades.js"></script>
+      <script src="js/popups.js"></script>
   </body>
 </html>
