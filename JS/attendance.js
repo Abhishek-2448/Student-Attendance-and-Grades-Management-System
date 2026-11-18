@@ -1,4 +1,4 @@
-const API_URL = "http://localhost:3000";
+const API_URL = "https://student-management-backend-nbol.onrender.com";
 
 const attendanceForm = document.getElementById("attendanceForm");
 const attendanceStudent = document.getElementById("attendanceStudent");
