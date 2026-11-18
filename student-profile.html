@@ -196,18 +196,14 @@
     <script src="JS/student-profile.js"></script>
 
     <script>
-      document.getElementById("userRole").textContent =
-        localStorage.getItem("userRole");
+  function logout() {
+    sessionStorage.removeItem("token");
+    sessionStorage.removeItem("isLoggedIn");
+    sessionStorage.removeItem("userRole");
 
-      function logout() {
-        localStorage.removeItem("token");
-        localStorage.removeItem("isLoggedIn");
-
-        localStorage.removeItem("userRole");
-
-        window.location.href = "login.html";
-      }
-    </script>
+    window.location.replace("login.html");
+  }
+</script>
       <script src="JS/popups.js"></script>
   </body>
 </html>

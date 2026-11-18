@@ -182,18 +182,14 @@
     </script>
 
     <script>
-      document.getElementById("userRole").textContent =
-        localStorage.getItem("userRole");
+  function logout() {
+    sessionStorage.removeItem("token");
+    sessionStorage.removeItem("isLoggedIn");
+    sessionStorage.removeItem("userRole");
 
-      function logout() {
-        localStorage.removeItem("token");
-        localStorage.removeItem("isLoggedIn");
-
-        localStorage.removeItem("userRole");
-
-        window.location.href = "login.html";
-      }
-    </script>
+    window.location.replace("login.html");
+  }
+</script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="JS/api.js"></script>
     <script src="JS/pagination.js"></script>
