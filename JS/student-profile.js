@@ -1,4 +1,3 @@
-const API_URL = "https://student-management-backend-nbol.onrender.com";
 
 const params = new URLSearchParams(window.location.search);
 const studentId = Number(params.get("id"));
@@ -18,7 +17,7 @@ async function loadStudentProfileData() {
   }
 
   try {
-    const response = await fetch(`${API_URL}/students/${studentId}/profile`);
+    const response = await apiFetch(`/students/${studentId}/profile`);
 
     if (response.status === 404) {
       showStudentNotFound();
@@ -93,7 +92,7 @@ async function loadStudentProfileData() {
 
     // Load subject names if the profile query did not include them.
     if (grades.some((record) => record.subject.startsWith("Subject "))) {
-      const subjectResponse = await fetch(`${API_URL}/subjects`);
+      const subjectResponse = await apiFetch(`/subjects`);
 
       if (subjectResponse.ok) {
         subjects = await subjectResponse.json();

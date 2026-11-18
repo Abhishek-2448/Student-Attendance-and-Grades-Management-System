@@ -1,4 +1,3 @@
-const API_URL = "https://student-management-backend-nbol.onrender.com";
 
 const totalStudents = document.getElementById("totalStudents");
 const overallAttendance = document.getElementById("overallAttendance");
@@ -28,9 +27,9 @@ async function loadDashboard() {
   try {
     const [studentsResponse, attendanceResponse, gradesResponse] =
       await Promise.all([
-        fetch(`${API_URL}/students`),
-        fetch(`${API_URL}/attendance`),
-        fetch(`${API_URL}/grades`),
+        apiFetch(`/students`),
+        apiFetch(`/attendance`),
+        apiFetch(`/grades`),
       ]);
 
     if (!studentsResponse.ok || !attendanceResponse.ok || !gradesResponse.ok) {

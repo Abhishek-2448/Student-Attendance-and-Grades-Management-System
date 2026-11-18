@@ -1,0 +1,13 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Environment files and secrets
+.env
+.env.*
+!.env.example
+backend/application.env
+
+# Logs and local artifacts
+npm-debug.log*
+.DS_Store

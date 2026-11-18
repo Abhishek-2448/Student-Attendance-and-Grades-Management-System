@@ -1,4 +1,3 @@
-
 import "./env.js";
 import mysql from "mysql2/promise";
 
@@ -8,22 +7,21 @@ const pool = mysql.createPool({
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
-
-  ssl: process.env.DB_SSL === "true" ? {} : undefined,
-
+  // TiDB Cloud requires TLS. Keep certificate verification enabled.
+  ssl: { minVersion: "TLSv1.2" },
   waitForConnections: true,
   connectionLimit: 5,
   queueLimit: 0,
 });
 
 export async function testConnection() {
-  const connection = await pool.getConnection();
-
+  let connection;
   try {
+    connection = await pool.getConnection();
     await connection.ping();
     console.log("TiDB connected successfully");
   } finally {
-    connection.release();
+    if (connection) connection.release();
   }
 }
 

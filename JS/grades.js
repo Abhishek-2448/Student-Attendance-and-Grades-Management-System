@@ -1,4 +1,3 @@
-const API_URL = "https://student-management-backend-nbol.onrender.com";
 
 const gradeForm = document.getElementById("gradeForm");
 const gradeStudent = document.getElementById("gradeStudent");
@@ -41,7 +40,7 @@ let gradePage = 1;
 
 async function loadData() {
   try {
-    const studentsResponse = await fetch(`${API_URL}/students`);
+    const studentsResponse = await apiFetch(`/students`);
 
     if (!studentsResponse.ok) {
       throw new Error("Failed to load students");
@@ -55,7 +54,7 @@ async function loadData() {
       studentClass: student.class,
     }));
 
-    const subjectsResponse = await fetch(`${API_URL}/subjects`);
+    const subjectsResponse = await apiFetch(`/subjects`);
 
     if (!subjectsResponse.ok) {
       throw new Error("Failed to load subjects");
@@ -63,7 +62,7 @@ async function loadData() {
 
     subjects = await subjectsResponse.json();
 
-    const gradesResponse = await fetch(`${API_URL}/grades`);
+    const gradesResponse = await apiFetch(`/grades`);
 
     if (!gradesResponse.ok) {
       throw new Error("Failed to load grades");
@@ -408,7 +407,7 @@ gradeForm.addEventListener("submit", async function (event) {
      */
 
     if (existingGrade) {
-      response = await fetch(`${API_URL}/grades/${existingGrade.id}`, {
+      response = await apiFetch(`/grades/${existingGrade.id}`, {
         method: "PUT",
 
         headers: {
@@ -428,7 +427,7 @@ gradeForm.addEventListener("submit", async function (event) {
     /*
      * ADD new grade
      */
-      response = await fetch(`${API_URL}/grades`, {
+      response = await apiFetch(`/grades`, {
         method: "POST",
 
         headers: {

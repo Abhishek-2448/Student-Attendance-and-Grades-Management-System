@@ -1,4 +1,3 @@
-const API_URL = "https://student-management-backend-nbol.onrender.com";
 
 const attendanceForm = document.getElementById("attendanceForm");
 const attendanceStudent = document.getElementById("attendanceStudent");
@@ -77,10 +76,9 @@ function normalizeAttendance(record) {
 }
 
 async function apiRequest(url, options = {}) {
-    const response = await fetch(`${API_URL}${url}`, {
+    const response = await apiFetch(`${url}`, {
         ...options,
         headers: {
-            "Content-Type": "application/json",
             ...(options.headers || {})
         }
     });

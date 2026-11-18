@@ -1,4 +1,3 @@
-const API_URL = "https://student-management-backend-nbol.onrender.com";
 
 const studentForm = document.getElementById("studentForm");
 
@@ -26,7 +25,7 @@ let currentPage = 1;
 
 async function loadStudents() {
   try {
-    const response = await fetch(`${API_URL}/students`);
+    const response = await apiFetch(`/students`);
 
     if (!response.ok) {
       throw new Error("Failed to load students");
@@ -236,7 +235,7 @@ studentForm.addEventListener("submit", async function (event) {
     /* ADD STUDENT */
 
     if (editingId === null) {
-      response = await fetch(`${API_URL}/students`, {
+      response = await apiFetch(`/students`, {
         method: "POST",
 
         headers: {
@@ -248,7 +247,7 @@ studentForm.addEventListener("submit", async function (event) {
     } else {
 
     /* UPDATE STUDENT */
-      response = await fetch(`${API_URL}/students/${editingId}`, {
+      response = await apiFetch(`/students/${editingId}`, {
         method: "PUT",
 
         headers: {
@@ -325,7 +324,7 @@ async function deleteStudent(id) {
   }
 
   try {
-    const response = await fetch(`${API_URL}/students/${id}`, {
+    const response = await apiFetch(`/students/${id}`, {
       method: "DELETE",
     });
 
