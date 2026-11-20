@@ -43,10 +43,29 @@
               <label for="gradeStudent"> Student </label>
 
               <div class="searchable-select" id="gradeStudentSearchBox">
-                <input type="text" id="gradeStudentSearch" placeholder="Search student by name" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="gradeStudentOptions" aria-autocomplete="list" />
-                <ul class="searchable-options" id="gradeStudentOptions" role="listbox" hidden></ul>
+                <input
+                  type="text"
+                  id="gradeStudentSearch"
+                  placeholder="Search student by name"
+                  autocomplete="off"
+                  role="combobox"
+                  aria-expanded="false"
+                  aria-controls="gradeStudentOptions"
+                  aria-autocomplete="list"
+                />
+                <ul
+                  class="searchable-options"
+                  id="gradeStudentOptions"
+                  role="listbox"
+                  hidden
+                ></ul>
               </div>
-              <select id="gradeStudent" class="searchable-native-select" aria-hidden="true" tabindex="-1">
+              <select
+                id="gradeStudent"
+                class="searchable-native-select"
+                aria-hidden="true"
+                tabindex="-1"
+              >
                 <option value="">Select Student</option>
               </select>
             </div>
@@ -97,11 +116,33 @@
               />
             </div>
 
-            <div class="searchable-select filter-searchable-select" id="filterGradeStudentSearchBox">
-              <input type="text" id="filterGradeStudentSearch" placeholder="Search student..." autocomplete="off" role="combobox" aria-expanded="false" aria-controls="filterGradeStudentOptions" aria-autocomplete="list" />
-              <ul class="searchable-options" id="filterGradeStudentOptions" role="listbox" hidden></ul>
+            <div
+              class="searchable-select filter-searchable-select"
+              id="filterGradeStudentSearchBox"
+            >
+              <input
+                type="text"
+                id="filterGradeStudentSearch"
+                placeholder="Search student..."
+                autocomplete="off"
+                role="combobox"
+                aria-expanded="false"
+                aria-controls="filterGradeStudentOptions"
+                aria-autocomplete="list"
+              />
+              <ul
+                class="searchable-options"
+                id="filterGradeStudentOptions"
+                role="listbox"
+                hidden
+              ></ul>
             </div>
-            <select id="filterGradeStudent" class="searchable-native-select" aria-hidden="true" tabindex="-1">
+            <select
+              id="filterGradeStudent"
+              class="searchable-native-select"
+              aria-hidden="true"
+              tabindex="-1"
+            >
               <option value="">All Students</option>
             </select>
 
@@ -160,25 +201,15 @@
     </main>
 
     <script>
-      if (!localStorage.getItem("token")) {
-        window.location.href = "login.html";
+      if (!sessionStorage.getItem("token")) {
+        window.location.replace("login.html");
       }
     </script>
-
-    <script>
-  function logout() {
-    sessionStorage.removeItem("token");
-    sessionStorage.removeItem("isLoggedIn");
-    sessionStorage.removeItem("userRole");
-
-    window.location.replace("login.html");
-  }
-</script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="JS/api.js"></script>
     <script src="JS/searchable-dropdown.js"></script>
     <script src="JS/pagination.js"></script>
     <script src="JS/grades.js"></script>
-      <script src="JS/popups.js"></script>
+    <script src="JS/popups.js"></script>
   </body>
 </html>

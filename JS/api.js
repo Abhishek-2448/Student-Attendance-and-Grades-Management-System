@@ -1,54 +1,58 @@
 
-/* Centralized API configuration and JWT handling. */
 (() => {
-  const hostname = window.location.hostname;
-  const isLocal =
-    hostname === "localhost" || hostname === "127.0.0.1";
+    const hostname = window.location.hostname;
 
-  window.API_BASE_URL = isLocal
-    ? "http://localhost:3000"
-    : "https://student-management-backend-nbol.onrender.com";
+    const isLocal =
+        hostname === "localhost" ||
+        hostname === "127.0.0.1";
 
-  // Remove old persistent authentication data.
-  localStorage.removeItem("token");
-  localStorage.removeItem("isLoggedIn");
-  localStorage.removeItem("userRole");
+    window.API_BASE_URL = isLocal
+        ? "http://localhost:3000"
+        : "https://student-management-backend-nbol.onrender.com";
 
-  window.apiFetch = async function apiFetch(endpoint, options = {}) {
-    const token = sessionStorage.getItem("token");
-    const headers = new Headers(options.headers || {});
+    window.apiFetch = async function (endpoint, options = {}) {
+        const token = sessionStorage.getItem("token");
 
-    if (token) {
-      headers.set("Authorization", `Bearer ${token}`);
-    }
+        if (!token) {
+            sessionStorage.removeItem("isLoggedIn");
+            sessionStorage.removeItem("userRole");
 
-    if (
-      options.body != null &&
-      !(options.body instanceof FormData) &&
-      !headers.has("Content-Type")
-    ) {
-      headers.set("Content-Type", "application/json");
-    }
+            const currentPage = window.location.pathname.split("/").pop();
 
-    const response = await fetch(`${window.API_BASE_URL}${endpoint}`, {
-      ...options,
-      headers,
-    });
+            if (currentPage !== "login.html") {
+                window.location.replace("login.html");
+            }
 
-    if (response.status === 401) {
-      sessionStorage.removeItem("token");
-      sessionStorage.removeItem("isLoggedIn");
-      sessionStorage.removeItem("userRole");
+            throw new Error("Please log in to continue.");
+        }
 
-      const currentPage = window.location.pathname.split("/").pop();
+        const headers = new Headers(options.headers || {});
 
-      if (currentPage !== "login.html") {
-        window.location.replace("login.html");
-      }
+        headers.set("Authorization", `Bearer ${token}`);
 
-      throw new Error("Your session has expired. Please log in again.");
-    }
+        if (
+            options.body != null &&
+            !(options.body instanceof FormData) &&
+            !headers.has("Content-Type")
+        ) {
+            headers.set("Content-Type", "application/json");
+        }
 
-    return response;
-  };
+        const response = await fetch(`${window.API_BASE_URL}${endpoint}`, {
+            ...options,
+            headers
+        });
+
+        if (response.status === 401) {
+            sessionStorage.removeItem("token");
+            sessionStorage.removeItem("isLoggedIn");
+            sessionStorage.removeItem("userRole");
+
+            window.location.replace("login.html");
+
+            throw new Error("Your session has expired. Please log in again.");
+        }
+
+        return response;
+    };
 })();

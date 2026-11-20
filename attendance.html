@@ -43,10 +43,29 @@
               <label for="attendanceStudent"> Student </label>
 
               <div class="searchable-select" id="attendanceStudentSearchBox">
-                <input type="text" id="attendanceStudentSearch" placeholder="Search student by name" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="attendanceStudentOptions" aria-autocomplete="list" />
-                <ul class="searchable-options" id="attendanceStudentOptions" role="listbox" hidden></ul>
+                <input
+                  type="text"
+                  id="attendanceStudentSearch"
+                  placeholder="Search student by name"
+                  autocomplete="off"
+                  role="combobox"
+                  aria-expanded="false"
+                  aria-controls="attendanceStudentOptions"
+                  aria-autocomplete="list"
+                />
+                <ul
+                  class="searchable-options"
+                  id="attendanceStudentOptions"
+                  role="listbox"
+                  hidden
+                ></ul>
               </div>
-              <select id="attendanceStudent" class="searchable-native-select" aria-hidden="true" tabindex="-1">
+              <select
+                id="attendanceStudent"
+                class="searchable-native-select"
+                aria-hidden="true"
+                tabindex="-1"
+              >
                 <option value="">Select Student</option>
               </select>
             </div>
@@ -91,11 +110,33 @@
               />
             </div>
 
-            <div class="searchable-select filter-searchable-select" id="filterAttendanceStudentSearchBox">
-              <input type="text" id="filterAttendanceStudentSearch" placeholder="Search student..." autocomplete="off" role="combobox" aria-expanded="false" aria-controls="filterAttendanceStudentOptions" aria-autocomplete="list" />
-              <ul class="searchable-options" id="filterAttendanceStudentOptions" role="listbox" hidden></ul>
+            <div
+              class="searchable-select filter-searchable-select"
+              id="filterAttendanceStudentSearchBox"
+            >
+              <input
+                type="text"
+                id="filterAttendanceStudentSearch"
+                placeholder="Search student..."
+                autocomplete="off"
+                role="combobox"
+                aria-expanded="false"
+                aria-controls="filterAttendanceStudentOptions"
+                aria-autocomplete="list"
+              />
+              <ul
+                class="searchable-options"
+                id="filterAttendanceStudentOptions"
+                role="listbox"
+                hidden
+              ></ul>
             </div>
-            <select id="filterAttendanceStudent" class="searchable-native-select" aria-hidden="true" tabindex="-1">
+            <select
+              id="filterAttendanceStudent"
+              class="searchable-native-select"
+              aria-hidden="true"
+              tabindex="-1"
+            >
               <option value="">All Students</option>
             </select>
 
@@ -193,27 +234,16 @@
         </div>
       </section>
     </main>
-
     <script>
-      if (!localStorage.getItem("token")) {
-        window.location.href = "login.html";
+      if (!sessionStorage.getItem("token")) {
+        window.location.replace("login.html");
       }
     </script>
-
-    <script>
-  function logout() {
-    sessionStorage.removeItem("token");
-    sessionStorage.removeItem("isLoggedIn");
-    sessionStorage.removeItem("userRole");
-
-    window.location.replace("login.html");
-  }
-</script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="JS/api.js"></script>
     <script src="JS/searchable-dropdown.js"></script>
     <script src="JS/pagination.js"></script>
     <script src="JS/attendance.js"></script>
-      <script src="JS/popups.js"></script>
+    <script src="JS/popups.js"></script>
   </body>
 </html>

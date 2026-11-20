@@ -176,24 +176,14 @@
     </main>
 
     <script>
-      if (!localStorage.getItem("token")) {
-        window.location.href = "login.html";
+      if (!sessionStorage.getItem("token")) {
+        window.location.replace("login.html");
       }
     </script>
-
-    <script>
-  function logout() {
-    sessionStorage.removeItem("token");
-    sessionStorage.removeItem("isLoggedIn");
-    sessionStorage.removeItem("userRole");
-
-    window.location.replace("login.html");
-  }
-</script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="JS/api.js"></script>
     <script src="JS/pagination.js"></script>
     <script src="JS/students.js"></script>
-        <script src="JS/popups.js"></script>
-      </body>
+    <script src="JS/popups.js"></script>
+  </body>
 </html>
