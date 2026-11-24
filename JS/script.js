@@ -1,4 +1,3 @@
-
 const totalStudents = document.getElementById("totalStudents");
 const overallAttendance = document.getElementById("overallAttendance");
 const averageGrade = document.getElementById("averageGrade");
@@ -277,6 +276,9 @@ function displayWarnings() {
 }
 
 /* Leaderboard */
+function formatPoints(points) {
+  return (Math.floor(Number(points) * 100) / 100).toFixed(2);
+}
 
 function displayLeaderboard() {
   leaderboardList.replaceChildren();
@@ -352,7 +354,7 @@ function displayLeaderboard() {
     averageCell.textContent = `${item.average.toFixed(1)}%`;
 
     const pointsCell = document.createElement("span");
-    pointsCell.textContent = item.points;
+    pointsCell.textContent = formatPoints(item.points);
 
     const badgesCell = document.createElement("span");
     badgesCell.textContent = item.badges;
